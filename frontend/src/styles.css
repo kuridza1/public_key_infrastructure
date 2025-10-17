@@ -1,1 +1,243 @@
-/* You can add global styles to this file, and also import other style files */
+/* === EXTENDED COLOR THEME === */
+:root {
+  /* Greens */
+  --green-lightest: #DDE8D0;
+  --green-light: #B9CE9C;
+  --green-mid: #8CAE68;
+  --green-dark: #60992D;
+  --green-deep: #3E6A1C;
+
+  /* Pinks */
+  --pink-light: #F5D5ED;
+  --pink-mid: #EBB9DF;
+  --pink-deep: #D991BA;
+
+  /* Neutrals */
+  --white: #ffffff;
+  --gray-100: #f8f8f8;
+  --gray-200: #eaeaea;
+  --gray-300: #cfcfcf;
+  --gray-400: #999;
+  --gray-500: #666;
+  --black: #222;
+
+  .register-form .mat-mdc-form-field {
+  margin-bottom:0 !important;
+}
+
+  /* Common aliases */
+  --color-primary: var(--green-light);
+  --color-primary-dark: var(--green-mid);
+  --color-accent: var(--pink-mid);
+  /* ===== GLOBAL Angular Material color tokens (persistent) ===== */
+  /* Outlined text fields */
+  --mdc-outlined-text-field-outline-color: var(--color-primary);
+  --mdc-outlined-text-field-hover-outline-color: var(--color-primary-dark);
+  --mdc-outlined-text-field-focus-outline-color: var(--color-primary-dark);
+
+  /* Label text */
+  --mdc-outlined-text-field-label-text-color: var(--color-primary-dark);
+  --mdc-outlined-text-field-hover-label-text-color: var(--color-primary);
+  --mdc-outlined-text-field-focus-label-text-color: var(--color-primary);
+
+  /* Input text & caret */
+  --mdc-outlined-text-field-input-text-color: var(--color-primary-dark);
+  --mdc-outlined-text-field-caret-color: var(--color-primary);
+  --mdc-outlined-text-field-input-text-placeholder-color: var(--gray-400);
+
+  /* Works on Angular Material v15+ (MDC) */
+::ng-deep .mat-mdc-form-field-appearance-outline .mdc-notched-outline__leading,
+::ng-deep .mat-mdc-form-field-appearance-outline .mdc-notched-outline__notch,
+::ng-deep .mat-mdc-form-field-appearance-outline .mdc-notched-outline__trailing {
+  border-radius: 12px !important;   /* adjust to taste (8–16px looks good) */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Ensures the internal wrapper respects the same radius */
+::ng-deep .mat-mdc-form-field-flex {
+  border-radius: 12px !important;
+  overflow: hidden; /* prevents the outline corners from clipping incorrectly */
+}
+
+/* Slightly stronger specificity so Material can't reset it */
+.mat-mdc-form-field {
+  color: var(--color-primary-dark);
+}
+
+}
+
+/* === GLOBAL FONT === */
+html, body {
+  font-family: 'Poppins', sans-serif;
+  background-image: linear-gradient(var(--color-accent), var(--color-primary));
+  color: var(--black);
+  margin: 0;
+  padding: 0;
+  line-height: 1.5;
+}
+
+/* === GLOBAL BUTTONS === */
+button,
+.btn {
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  border: none;
+  border-radius: 10px;
+  padding: 0.8rem 1.6rem;
+  cursor: pointer;
+  transition: .3s;
+  color: var(--white);
+  background: var(--color-primary);
+}
+button:hover,
+.btn:hover {
+  box-shadow: 8px 8px var(--color-accent);
+  transition: .3s;
+}
+
+.btn-accent {
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  border: none;
+  border-radius: 10px;
+  padding: 0.8rem 1.6rem;
+  border:3px solid var(--color-accent);
+  cursor: pointer;
+  background-color: white;
+  color: var(--color-accent);
+}
+.btn-accent:hover{
+  box-shadow: 8px 8px var(--pink-light);
+  transition: .3s;
+}
+
+/* === FIXED GRADIENT CTA BUTTON === */
+.btn-gradient {
+  color: var(--white);
+  font-weight: 600;
+  background: var(--color-primary) ;
+  border-radius: 10px;
+  transition: .3s;
+}
+
+.btn-gradient:disabled {
+  opacity: 0.7;
+  background-image: linear-gradient(135deg, var(--green-lightest), var(--green-light));
+  box-shadow: none;
+}
+
+.btn-gradient:hover{
+    background-image: linear-gradient(135deg, var(--pink-light), var(--green-light));
+    box-shadow: 8px 8px var(--pink-deep);
+    transition: .3s;
+}
+
+/* === PINK ACCENT GRADIENT === */
+.btn-gradient-accent {
+  background-image: linear-gradient(135deg, var(--pink-light), var(--pink-dark));
+  color: var(--black);
+  font-weight: 600;
+  border-radius: 10px;
+}
+.btn-gradient-accent:hover {
+  background-image: linear-gradient(135deg, var(--pink-mid), var(--pink-deep));
+}
+
+/* === INPUTS === */
+input, textarea, select {
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--black);
+  background: var(--white);
+  border: 2px solid var(--gray-200);
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  width: 100%;
+  transition: all 0.2s ease;
+  outline: none;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(140, 174, 104, 0.25);
+}
+
+/* === LINKS === */
+a {
+  color: var(--gray-300);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+a:hover {
+  color: var(--pink-mid);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ===== Angular Material Text Field color overrides (GLOBAL) ===== */
+/* Applies to all mat-form-field (outlined) */
+.mat-mdc-form-field {
+  /* Outline */
+  --mdc-outlined-text-field-outline-color: var(--color-primary);           /* default */
+  --mdc-outlined-text-field-hover-outline-color: var(--color-primary-dark);/* hover */
+  --mdc-outlined-text-field-focus-outline-color: var(--color-primary-dark);/* focus */
+
+  /* Label */
+  --mdc-outlined-text-field-label-text-color: var(--color-primary-dark);   /* default */
+  --mdc-outlined-text-field-hover-label-text-color: var(--color-primary);  /* hover */
+  --mdc-outlined-text-field-focus-label-text-color: var(--color-primary);  /* focus */
+
+  /* Input text & caret */
+  --mdc-outlined-text-field-input-text-color: var(--color-primary-dark);
+  --mdc-outlined-text-field-caret-color: var(--color-primary);
+
+  /* Helper/placeholder colors (optional) */
+  --mdc-outlined-text-field-input-text-placeholder-color: var(--gray-400);
+}
+
+/* If you also use filled appearance anywhere, keep the set in sync */
+.mat-mdc-text-field-wrapper {
+  --mdc-filled-text-field-caret-color: var(--color-primary);
+}
+
+/* Stronger fallback if variables don’t take (older bundles) */
+::ng-deep .mat-mdc-form-field-appearance-outline .mdc-notched-outline__leading,
+::ng-deep .mat-mdc-form-field-appearance-outline .mdc-notched-outline__notch,
+::ng-deep .mat-mdc-form-field-appearance-outline .mdc-notched-outline__trailing {
+  border-color: var(--color-primary) !important;
+}
+::ng-deep .mat-mdc-form-field.mat-focused
+  .mdc-notched-outline__leading,
+::ng-deep .mat-mdc-form-field.mat-focused
+  .mdc-notched-outline__notch,
+::ng-deep .mat-mdc-form-field.mat-focused
+  .mdc-notched-outline__trailing {
+  border-color: var(--color-primary-dark) !important;
+}
+::ng-deep .mat-mdc-floating-label {
+  color: var(--color-primary-dark) !important;
+}
+::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-floating-label {
+  color: var(--color-primary) !important;
+}
+::ng-deep .mat-mdc-input-element {
+  color: var(--color-primary-dark) !important;
+  caret-color: var(--color-primary) !important;
+}
+
+/* Works on Angular Material v15+ (MDC) */
+::ng-deep .mat-mdc-form-field-appearance-outline .mdc-notched-outline__leading,
+::ng-deep .mat-mdc-form-field-appearance-outline .mdc-notched-outline__notch,
+::ng-deep .mat-mdc-form-field-appearance-outline .mdc-notched-outline__trailing {
+  border-radius: 12px !important;   /* adjust to taste (8–16px looks good) */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Ensures the internal wrapper respects the same radius */
+::ng-deep .mat-mdc-form-field-flex {
+  border-radius: 12px !important;
+  overflow: hidden; /* prevents the outline corners from clipping incorrectly */
+}
