@@ -11,7 +11,7 @@ export class AuthInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const auth = this.injector.get(AuthService);
 
-    const isApi = req.url.startsWith('https://localhost:8081/');
+    const isApi = req.url.startsWith('https://localhost:8080/');
     const isAuthEndpoint =
       req.url.includes('/api/v1/users/login') ||
       req.url.includes('/api/v1/users/register') ||
