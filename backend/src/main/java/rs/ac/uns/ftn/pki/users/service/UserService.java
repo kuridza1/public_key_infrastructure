@@ -1,27 +1,27 @@
 package rs.ac.uns.ftn.pki.users.service;
 
-import rs.ac.uns.ftn.pki.certificates.model.CertificateStatus;
-import rs.ac.uns.ftn.pki.certificates.service.CertificateService;
+// import rs.ac.uns.ftn.pki.certificates.model.CertificateStatus;
+// import rs.ac.uns.ftn.pki.certificates.service.CertificateService;
 import rs.ac.uns.ftn.pki.users.dtos.responses.CaUserResponse;
 import rs.ac.uns.ftn.pki.users.model.Role;
 import rs.ac.uns.ftn.pki.users.repository.UserRepository;
 import rs.ac.uns.ftn.pki.users.model.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import rs.ac.uns.ftn.pki.certificates.model.Certificate;
-import java.time.OffsetDateTime;
-import java.util.Comparator;
+// import rs.ac.uns.ftn.pki.certificates.model.Certificate;
+// import java.time.OffsetDateTime;
+// import java.util.Comparator;
 import java.util.List;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepo;
-    private final CertificateService certificateService;
-
-    public UserService(UserRepository userRepo, CertificateService certificateService) {
+//    private final CertificateService certificateService;
+//    public UserService(UserRepository userRepo, CertificateService certificateService) {
+    public UserService(UserRepository userRepo) {
         this.userRepo = userRepo;
-        this.certificateService = certificateService;
+//        this.certificateService = certificateService;
     }
 
     @Transactional(readOnly = true)
@@ -44,21 +44,21 @@ public class UserService {
 
         return users.stream()
                 .map(u -> {
-                    var active = u.getMyCertificates().stream()
-                            .filter(c -> certificateService.getStatus(c) == CertificateStatus.ACTIVE)
-                            .toList();
+//                    var active = u.getMyCertificates().stream()
+//                            .filter(c -> certificateService.getStatus(c) == CertificateStatus.ACTIVE)
+//                            .toList();
 
-                    if (active.isEmpty()) return null;
+//                    if (active.isEmpty()) return null;
 
-                    OffsetDateTime minFrom = active.stream()
-                            .map(Certificate::getNotBefore)
-                            .min(Comparator.naturalOrder())
-                            .orElse(null);
-
-                    OffsetDateTime maxUntil = active.stream()
-                            .map(Certificate::getNotAfter)
-                            .max(Comparator.naturalOrder())
-                            .orElse(null);
+//                    OffsetDateTime minFrom = active.stream()
+//                            .map(Certificate::getNotBefore)
+//                            .min(Comparator.naturalOrder())
+//                            .orElse(null);
+//
+//                    OffsetDateTime maxUntil = active.stream()
+//                            .map(Certificate::getNotAfter)
+//                            .max(Comparator.naturalOrder())
+//                            .orElse(null);
 
                     CaUserResponse dto = new CaUserResponse();
                     dto.setId(u.getId().toString());
@@ -66,8 +66,8 @@ public class UserService {
                     dto.setName(u.getName());
                     dto.setSurname(u.getSurname());
                     dto.setOrganization(u.getOrganization());
-                    dto.setMinValidFrom(minFrom);
-                    dto.setMaxValidUntil(maxUntil);
+//                    dto.setMinValidFrom(minFrom);
+//                    dto.setMaxValidUntil(maxUntil);
                     return dto;
                 })
                 .filter(dto -> dto != null)
