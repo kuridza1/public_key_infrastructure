@@ -33,7 +33,7 @@ public class RegistrationService {
     @Value("${auth.email-confirmation.token-ttl-minutes:60}")
     private int tokenTtlMinutes;
 
-    @Value("${app.public-base-url:https://localhost:4200}")
+    @Value("${app.public-base-url:http://localhost:4200}")
     private String publicBaseUrl;
 
     public RegistrationService(
@@ -116,7 +116,7 @@ public class RegistrationService {
                 <p><a href="%s">Confirm my email</a></p>
                 <p>If you didn't sign up, please ignore this message.</p>
                 """.formatted(escapeHtml(safeName), tokenTtlMinutes, confirmUrl);
-        emailSender.send(user.getEmail(), "Confirm your SudoBox account", html);
+        emailSender.send(user.getEmail(), "Confirm your PKI account", html);
 
         rr.setMessage("Registration received. Check your email to confirm.");
         return new RegistrationResult(true, 202, rr);
