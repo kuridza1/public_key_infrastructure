@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
@@ -19,4 +20,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
            where u.role = :role
            """)
     List<User> findAllByRoleWithCertificates(@Param("role") Role role);
-}
+
+    User findByEmail(String email);
+
+    @EntityGraph(attributePaths = "myCertificates")
+    Optional<User> findWithMyCertificatesById(UUID id);}

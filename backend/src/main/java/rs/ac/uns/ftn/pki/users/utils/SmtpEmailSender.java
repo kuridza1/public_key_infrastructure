@@ -23,7 +23,7 @@ public class SmtpEmailSender {
     @Value("${email.smtp.pass:}")
     private String pass;
 
-    @Value("${email.from:no-reply@sudobox.local}")
+    @Value("${email.from:no-reply@pkiserver.local}")
     private String from;
 
     public void send(String toEmail, String subject, String htmlBody) {
@@ -37,14 +37,14 @@ public class SmtpEmailSender {
 
         Properties props = sender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", String.valueOf(!user.isBlank()));
-        props.put("mail.smtp.starttls.enable", "true"); // StartTLS when available
+        props.put("mail.smtp.auth", "false");                 // <── disable auth
+        props.put("mail.smtp.starttls.enable", "false");      // <── disable STARTTLS
         props.put("mail.debug", "false");
 
         MimeMessage msg = sender.createMimeMessage();
         try {
             MimeMessageHelper helper = new MimeMessageHelper(msg, "UTF-8");
-            helper.setFrom(from, "SudoBox");
+            helper.setFrom(from, "PKIServer");
             helper.setTo(toEmail);
             helper.setSubject(subject);
             helper.setText(htmlBody, true); // HTML
