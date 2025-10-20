@@ -37,7 +37,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     DatePipe
   ],
   templateUrl: './certificate-requests.component.html',
-  styleUrl: './certificate-requests.component.scss'
+  styleUrl: './certificate-requests.component.css'
 })
 export class CertificateRequestsComponent implements OnInit {
   certificateRequestService = inject(CertificateRequestsService);

@@ -42,7 +42,7 @@ import {CSRApprove} from '../../../models/CSRApprove';
     MatChipSet
   ],
   templateUrl: './edit-certificate-request-dialog.component.html',
-  styleUrl: './edit-certificate-request-dialog.component.scss'
+  styleUrl: './edit-certificate-request-dialog.component.css'
 })
 export class EditCertificateRequestDialogComponent implements OnInit {
   @ViewChild('notBeforeModel') dateNotBeforeModel!: NgModel;
