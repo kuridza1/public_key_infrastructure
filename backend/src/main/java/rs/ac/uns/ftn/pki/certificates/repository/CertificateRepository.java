@@ -37,12 +37,6 @@ public interface CertificateRepository extends JpaRepository<Certificate, BigInt
             "WHERE c.signedBy.id = :signedById")
     List<Certificate> findBySignedById(@Param("signedById") UUID signedById);
 
-    // Find certificates by user ID (certificates owned by user)
-    @Query("SELECT c FROM Certificate c " +
-            "JOIN c.owners u " +
-            "WHERE u.id = :userId")
-    List<Certificate> findByOwnerId(@Param("userId") UUID userId);
-
     // Find active certificates (not expired, not revoked, etc.)
     @Query("SELECT c FROM Certificate c " +
             "WHERE c.notBefore <= CURRENT_TIMESTAMP " +

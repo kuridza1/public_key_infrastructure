@@ -103,7 +103,7 @@ public class Certificate extends BaseEntity {
         this.issuedTo = issuedTo;
     }
 
-    public ChronoLocalDateTime<?> getNotBefore() {
+    public OffsetDateTime getNotBefore() {
         return notBefore;
     }
 
@@ -111,7 +111,7 @@ public class Certificate extends BaseEntity {
         this.notBefore = notBefore;
     }
 
-    public ChronoLocalDateTime<?> getNotAfter() {
+    public OffsetDateTime getNotAfter() {
         return notAfter;
     }
 
