@@ -11,6 +11,7 @@ import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import java.io.StringWriter;
 import java.math.BigInteger;
 import java.time.OffsetDateTime;
+import java.time.chrono.ChronoLocalDateTime;
 import java.util.Base64;
 
 @Entity
@@ -102,7 +103,7 @@ public class Certificate extends BaseEntity {
         this.issuedTo = issuedTo;
     }
 
-    public OffsetDateTime getNotBefore() {
+    public ChronoLocalDateTime<?> getNotBefore() {
         return notBefore;
     }
 
@@ -110,7 +111,7 @@ public class Certificate extends BaseEntity {
         this.notBefore = notBefore;
     }
 
-    public OffsetDateTime getNotAfter() {
+    public ChronoLocalDateTime<?> getNotAfter() {
         return notAfter;
     }
 
