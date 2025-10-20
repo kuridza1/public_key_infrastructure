@@ -1,0 +1,25 @@
+<div class="container">
+  <button (click)="onNoClick()" class="close-button" mat-icon-button tabindex="-1">
+    <span class="material-symbols-rounded">close</span>
+  </button>
+  <p class="large-text">Your keys</p>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Private key</mat-label>
+    <textarea disabled [scrollTop]="0" rows="8" class="textarea" matInput [value]="keys.privateKey"></textarea>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Public key</mat-label>
+    <textarea disabled [scrollTop]="0" rows="8" class="textarea" matInput [value]="keys.publicKey"></textarea>
+  </mat-form-field>
+
+  <div class="action-buttons">
+    <button [cdkCopyToClipboard]="keys.privateKey" (cdkCopyToClipboardCopied)="onCopied('Private')" class="blue-button finish">
+      Copy private key
+    </button>
+    <button [cdkCopyToClipboard]="keys.publicKey" (cdkCopyToClipboardCopied)="onCopied('Public')" class="blue-button finish">
+      Copy public key
+    </button>
+  </div>
+</div>

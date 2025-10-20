@@ -1,0 +1,79 @@
+@import "colors";
+@import "buttons";
+
+.container {
+  background-color: $background;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  gap: 20px;
+  padding: 52px 50px 64px 50px;
+  color: $text;
+}
+
+mat-form-field {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.finish {
+  margin-bottom: 0;
+  width: 14rem;
+  height: 3rem;
+}
+
+.large-text {
+  font-size: xx-large;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  padding: 0;
+  width: 100%;
+}
+
+.textarea {
+  resize: none;
+  padding-right: 8px;
+  font-family: Roboto Mono, monospace;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $edge2;
+    border-radius: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: $edge3;
+    cursor: pointer;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+.textarea:disabled {
+  color: $text;
+  -webkit-text-fill-color: $text;
+}
+
+@-moz-document url-prefix() {
+  .textarea {
+    scrollbar-width: thin;
+    scrollbar-color: $edge2 transparent;
+  }
+}

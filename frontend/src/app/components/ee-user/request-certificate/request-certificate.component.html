@@ -1,0 +1,290 @@
+<div class="certificate-container">
+  <div *ngIf="loading" class="loading-overlay">
+    <mat-spinner></mat-spinner>
+  </div>
+  <mat-tab-group dynamicHeight="true" fitInkBarToContent>
+    <mat-tab label="Upload CSR">
+      <div class="tab-content">
+        <form class="certificate-form" #csrForm="ngForm" (ngSubmit)="onSubmitCSR(csrForm)">
+          <div class="row">
+            <mat-form-field appearance="outline">
+              <mat-label>CA Issuer</mat-label>
+              <mat-select [(ngModel)]="signingOrganization" name="signingOrganization" required (selectionChange)="revalidateDates()">
+                <mat-option *ngFor="let ca of caUsers" [value]="ca">{{ ca.organization }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="row">
+            <div
+              class="upload-container"
+              (click)="fileInput.click()"
+              (drop)="onDrop($event)"
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave($event)"
+              tabindex="0"
+              role="button"
+            >
+              <div class="upload-box" [class.dragging]="isDragging">
+                <span class="material-symbols-rounded larger-icon">upload</span>
+
+                <p>Drag 'n' drop CSR here, or click to select the file.</p>
+                <div *ngIf="fileName" class="selected-file">
+                  <p class="file-name">Selected: {{ fileName }}</p>
+                  <button mat-icon-button type="button" (click)="removeFile($event)">
+                    <span class="material-symbols-rounded">close</span>
+                  </button>
+                </div>
+                <p class="hint" *ngIf="!fileName">Supported: .csr, .pem</p>
+              </div>
+
+              <input type="file" #fileInput accept=".csr,.pem" hidden (change)="onFileChosen($event)" name="csrFile" required>
+            </div>
+          </div>
+
+          <div class="row">
+            <mat-form-field appearance="outline">
+              <mat-label>Not After</mat-label>
+              <input matInput [matDatepicker]="pickerNotAfterCSR" [(ngModel)]="dateNotAfter" name="notAfterCSR"
+                     #notAfterCSRModel="ngModel" (ngModelChange)="revalidateDates()">
+              <mat-datepicker-toggle matSuffix [for]="pickerNotAfterCSR"></mat-datepicker-toggle>
+              <mat-datepicker #pickerNotAfterCSR></mat-datepicker>
+            </mat-form-field>
+          </div>
+          <div class="actions">
+            <button class="blue-button medium-btn" type="submit" [disabled]="csrForm.invalid || !csrFile || loading">
+              Request
+            </button>
+          </div>
+        </form>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Generate Request">
+      <ng-template matTabContent>
+        <div class="tab-content">
+          <form class="certificate-form" #requestForm="ngForm" (ngSubmit)="onSubmit(requestForm)">
+            <div class="row">
+              <mat-form-field appearance="outline">
+                <mat-label>CA Issuer</mat-label>
+                <mat-select [(ngModel)]="signingOrganization" name="signingOrganization" required (selectionChange)="revalidateDates()">
+                  <mat-option *ngFor="let ca of caUsers" [value]="ca">{{ ca.organization }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Common Name (CN)</mat-label>
+                <input matInput [(ngModel)]="commonName" name="commonName" required/>
+              </mat-form-field>
+            </div>
+
+            <div class="row">
+              <mat-form-field appearance="outline">
+                <mat-label>Organization (O)</mat-label>
+                <input matInput [(ngModel)]="organization" name="organization" required/>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Organizational Unit (OU)</mat-label>
+                <input matInput [(ngModel)]="organizationalUnit" name="organizationalUnit" required/>
+              </mat-form-field>
+            </div>
+
+            <div class="row">
+              <mat-form-field appearance="outline">
+                <mat-label>Email Address (E)</mat-label>
+                <input matInput type="email" [(ngModel)]="email" name="email" required/>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Country (C)</mat-label>
+                <input matInput maxlength="2" [(ngModel)]="country" name="country" (input)="onCountryInput($event)" required/>
+              </mat-form-field>
+            </div>
+
+            <div class="row">
+              <mat-form-field appearance="outline">
+                <mat-label>Not Before</mat-label>
+                <input matInput [matDatepicker]="pickerNotBefore" [(ngModel)]="dateNotBefore" name="notBefore"
+                       #notBeforeModel="ngModel" (ngModelChange)="revalidateDates()">
+                <mat-datepicker-toggle matSuffix [for]="pickerNotBefore"></mat-datepicker-toggle>
+                <mat-datepicker #pickerNotBefore></mat-datepicker>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Not After</mat-label>
+                <input matInput [matDatepicker]="pickerNotAfter" [(ngModel)]="dateNotAfter" name="notAfter"
+                       #notAfterModel="ngModel" (ngModelChange)="revalidateDates()">
+                <mat-datepicker-toggle matSuffix [for]="pickerNotAfter"></mat-datepicker-toggle>
+                <mat-datepicker #pickerNotAfter></mat-datepicker>
+              </mat-form-field>
+            </div>
+
+            <div class="extensions-container" *ngIf="extensions.length > 0">
+              <div class="row extension-row" *ngFor="let ext of extensions; let i = index">
+                <mat-form-field appearance="outline">
+                  <mat-label>Extension key</mat-label>
+                  <mat-select [(ngModel)]="ext.key" name="extKey{{i}}" (selectionChange)="clearExtensionValue(ext)" required>
+                    <mat-option *ngFor="let key of getAvailableKeys(ext)" [value]="key.value">
+                      {{ key.label }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field *ngIf="ext.key === 'keyUsage'" appearance="outline">
+                  <mat-label>Key usage</mat-label>
+                  <mat-select [(ngModel)]="ext.value" name="extValue{{i}}" multiple required>
+                    <mat-option [value]="KeyUsageValue.DigitalSignature">Digital Signature</mat-option>
+                    <mat-option [value]="KeyUsageValue.NonRepudiation">Non Repudiation</mat-option>
+                    <mat-option [value]="KeyUsageValue.KeyEncipherment">Key Encipherment</mat-option>
+                    <mat-option [value]="KeyUsageValue.DataEncipherment">Data Encipherment</mat-option>
+                    <mat-option [value]="KeyUsageValue.KeyAgreement">Key Agreement</mat-option>
+                    <mat-option [value]="KeyUsageValue.CertificateSigning">Certificate Signing</mat-option>
+                    <mat-option [value]="KeyUsageValue.CrlSigning">CRL Signing</mat-option>
+                    <mat-option [value]="KeyUsageValue.EncipherOnly">Encipher Only</mat-option>
+                    <mat-option [value]="KeyUsageValue.DecipherOnly">Decipher Only</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field *ngIf="ext.key === 'extendedKeyUsage'" appearance="outline">
+                  <mat-label>Extended key usage</mat-label>
+                  <mat-select [(ngModel)]="ext.value" name="extValue{{i}}" multiple required>
+                    <mat-option [value]="ExtendedKeyUsageValue.ServerAuthentication">Server Authentication</mat-option>
+                    <mat-option [value]="ExtendedKeyUsageValue.ClientAuthentication">Client Authentication</mat-option>
+                    <mat-option [value]="ExtendedKeyUsageValue.CodeSigning">Code Signing</mat-option>
+                    <mat-option [value]="ExtendedKeyUsageValue.EmailProtection">Email Protection</mat-option>
+                    <mat-option [value]="ExtendedKeyUsageValue.IpSecEndSystem">IPSec End System</mat-option>
+                    <mat-option [value]="ExtendedKeyUsageValue.IpSecTunnel">IPSec Tunnel</mat-option>
+                    <mat-option [value]="ExtendedKeyUsageValue.IpSecUser">IPSec User</mat-option>
+                    <mat-option [value]="ExtendedKeyUsageValue.TimeStamping">Time Stamping</mat-option>
+                    <mat-option [value]="ExtendedKeyUsageValue.OcspSigning">OCSP Signing</mat-option>
+                    <mat-option [value]="ExtendedKeyUsageValue.Dvcs">DVCS</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <div *ngIf="ext.key === 'subjectAlternativeNames' || ext.key === 'issuerAlternativeNames'" class="san-value">
+                  <div class="input-row">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Type</mat-label>
+                      <mat-select #prefixRef value="DNS">
+                        <mat-option value="DNS">DNS</mat-option>
+                        <mat-option value="IP">IP</mat-option>
+                        <mat-option value="URI">URI</mat-option>
+                        <mat-option value="EMAIL">EMAIL</mat-option>
+                        <mat-option value="OTHER">OTHER</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Name</mat-label>
+                      <input matInput (keydown)="handleKeyDown($event, ext.value, prefixRef)">
+                    </mat-form-field>
+                  </div>
+                  <mat-chip-set *ngIf="ext.value.length > 0" aria-label="chips">
+                    <mat-chip-row *ngFor="let chip of ext.value" [removable]="true" (removed)="removeChip(ext.value, chip)">
+                      <span class="text-value">{{ chip.prefix }}:{{ chip.value }}</span>
+                      <button matChipRemove><span class="material-symbols-rounded remove-icon">cancel</span></button>
+                    </mat-chip-row>
+                  </mat-chip-set>
+                </div>
+
+                <div *ngIf="ext.key === 'nameConstraints'" class="extension-value">
+                  <div class="san-value">
+                    <div class="input-row">
+                      <mat-form-field appearance="outline">
+                        <mat-label>Type</mat-label>
+                        <mat-select #prefixRef1 value="DNS">
+                          <mat-option value="DNS">DNS</mat-option>
+                          <mat-option value="IP">IP</mat-option>
+                          <mat-option value="URI">URI</mat-option>
+                          <mat-option value="EMAIL">EMAIL</mat-option>
+                          <mat-option value="OTHER">OTHER</mat-option>
+                        </mat-select>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline">
+                        <mat-label>Permitted Subtree</mat-label>
+                        <input matInput (keydown)="handleKeyDown($event, ext.value[0], prefixRef1)">
+                      </mat-form-field>
+                    </div>
+                    <mat-chip-set *ngIf="ext.value[0].length > 0" aria-label="chips">
+                      <mat-chip-row *ngFor="let chip of ext.value[0]" [removable]="true" (removed)="removeChip(ext.value[0], chip)">
+                        <span class="text-value">{{ chip.prefix }}:{{ chip.value }}</span>
+                        <button matChipRemove><span class="material-symbols-rounded remove-icon">cancel</span></button>
+                      </mat-chip-row>
+                    </mat-chip-set>
+                  </div>
+
+                  <div class="san-value">
+                    <div class="input-row">
+                      <mat-form-field appearance="outline">
+                        <mat-label>Type</mat-label>
+                        <mat-select #prefixRef2 value="DNS">
+                          <mat-option value="DNS">DNS</mat-option>
+                          <mat-option value="IP">IP</mat-option>
+                          <mat-option value="URI">URI</mat-option>
+                          <mat-option value="EMAIL">EMAIL</mat-option>
+                          <mat-option value="OTHER">OTHER</mat-option>
+                        </mat-select>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline">
+                        <mat-label>Excluded Subtree</mat-label>
+                        <input matInput (keydown)="handleKeyDown($event, ext.value[1], prefixRef2)">
+                      </mat-form-field>
+                    </div>
+                    <mat-chip-set *ngIf="ext.value[1].length > 0" aria-label="chips">
+                      <mat-chip-row *ngFor="let chip of ext.value[1]" [removable]="true" (removed)="removeChip(ext.value[1], chip)">
+                        <span class="text-value">{{ chip.prefix }}:{{ chip.value }}</span>
+                        <button matChipRemove><span class="material-symbols-rounded remove-icon">cancel</span></button>
+                      </mat-chip-row>
+                    </mat-chip-set>
+                  </div>
+                </div>
+
+                <div *ngIf="ext.key === 'basicConstraints'" class="extension-value-row">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Is CA</mat-label>
+                    <mat-select [(ngModel)]="ext.value.isCa" name="extValue{{i}}isCa" required>
+                      <mat-option [value]="true">Yes</mat-option>
+                      <mat-option [value]="false">No</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Path Length Constraint</mat-label>
+                    <input matInput [(ngModel)]="ext.value.pathLen" name="extValue{{i}}pathLen" (input)="sanitizePathLen($event, ext)"/>
+                  </mat-form-field>
+                </div>
+
+                <div *ngIf="ext.key === 'certificatePolicies'" class="extension-value">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Policy Identifier</mat-label>
+                    <input matInput [(ngModel)]="ext.value.policyIdentifier" name="policyId{{i}}" required/>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>CPS URI</mat-label>
+                    <input matInput [(ngModel)]="ext.value.cpsUri" name="cpsUri{{i}}"/>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>User Notice</mat-label>
+                    <input matInput [(ngModel)]="ext.value.userNotice" name="userNotice{{i}}"/>
+                  </mat-form-field>
+                </div>
+
+                <button mat-icon-button (click)="removeExtension(i)">
+                  <span class="material-symbols-rounded">do_not_disturb_on</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="blue-button large-btn" type="button" (click)="addExtension()">
+                Add extension
+              </button>
+              <button class="blue-button large-btn" type="submit" [disabled]="requestForm.invalid || loading">
+                Request
+              </button>
+            </div>
+          </form>
+        </div>
+      </ng-template>
+    </mat-tab>
+  </mat-tab-group>
+</div>
