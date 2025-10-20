@@ -1,0 +1,84 @@
+/* key-dialog.component.css */
+
+/* Uses your global :root tokens defined elsewhere */
+.container {
+  background-color: var(--background);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  gap: 20px;
+  padding: 52px 50px 64px 50px;
+}
+
+/* Angular Material fields */
+mat-form-field {
+  width: 100%;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+/* Action button (finish) */
+.finish {
+  margin-bottom: 0;
+  width: 14rem;
+  height: 3rem;
+}
+
+/* Headline */
+.large-text {
+  font-size: xx-large;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+/* Button row */
+.action-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  padding: 0;
+  width: 100%;
+}
+
+/* Textarea + custom scrollbar */
+.textarea {
+  resize: none;
+  padding-right: 8px;
+  font-family: 'Roboto Mono', monospace;
+}
+
+/* WebKit scrollbars */
+.textarea::-webkit-scrollbar {
+  width: 4px;
+}
+
+.textarea::-webkit-scrollbar-thumb {
+  background: var(--edge2);
+  border-radius: 6px;
+}
+
+.textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--edge3);
+  cursor: pointer;
+}
+
+.textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Disabled textarea color stays consistent with theme */
+.textarea:disabled {
+  color: var(--text);
+  -webkit-text-fill-color: var(--text);
+}
+
+/* Firefox scrollbar */
+@-moz-document url-prefix() {
+  .textarea {
+    scrollbar-width: thin;
+    scrollbar-color: var(--edge2) transparent;
+  }
+}

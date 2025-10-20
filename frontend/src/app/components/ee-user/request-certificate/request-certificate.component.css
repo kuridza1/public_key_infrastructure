@@ -1,0 +1,290 @@
+/* certificate-dialog.component.css */
+
+/* Host container (fills viewport, matches app background) */
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: var(--background);
+}
+
+.certificate-section{
+    padding-top: 20px;
+}
+
+::ng-deep .mat-datepicker-content {
+  background-color: var(--color-primary) !important;
+  color: var(--color-primary-dark);
+  border-radius: 10px;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+
+.certificate-form-section{
+    border-radius: 20px;
+    box-shadow: 10px;
+    background-color: var(--gray-100);
+}
+
+/* Certificate container */
+.certificate-container {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 90px 0 140px 0;
+}
+
+/* Angular Material tab styling */
+::ng-deep .mat-mdc-tab {
+  height: 64px !important;
+  font-size: medium !important;
+  width: 50%;
+}
+
+/* Form layout */
+.certificate-form {
+  display: flex;
+  flex-direction: column;
+  width: 700px;
+  gap: 20px;
+}
+
+/* Row inside form */
+.certificate-form .row {
+  display: flex;
+  gap: 20px;
+}
+
+/* Form fields */
+.certificate-form .row mat-form-field {
+  flex: 1;
+}
+
+::ng-deep .mat-mdc-input-element {
+  color: var(--text);
+}
+
+::ng-deep .mat-mdc-floating-label {
+  color: var(--gray-300) !important;
+}
+
+/* Extensions */
+.certificate-form .extensions-container {
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  height: auto;
+  gap: 20px;
+}
+
+/* Extension row layout */
+.certificate-form .extension-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+/* Remove button (icon) */
+.certificate-form .extension-row button[mat-icon-button] {
+  margin-left: -8px;
+  transform: scale(1.1);
+  color: var(--gray-300);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  top: 8px;
+}
+
+/* Column proportions */
+.certificate-form .extension-row > :first-child {
+  flex: 70;
+  min-width: 260px;
+}
+
+.certificate-form .extension-row > :not(:first-child):not(:last-child) {
+  flex: 100;
+}
+
+.certificate-form .extension-row > :last-child {
+  flex: 0 0 auto;
+}
+
+/* Extension value structure */
+.certificate-form .extension-row .extension-value {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 16px;
+}
+
+/* Extension value rows */
+.certificate-form .extension-row .extension-value-row {
+  display: flex;
+  max-width: 368px;
+  gap: 16px;
+}
+
+.certificate-form .extension-row .extension-value-row > :first-child {
+  flex: 64;
+}
+
+.certificate-form .extension-row .extension-value-row > :not(:first-child) {
+  flex: 100;
+}
+
+/* SAN value */
+.certificate-form .extension-row .san-value {
+  display: flex;
+  flex-direction: column;
+  max-width: 368px;
+  margin-bottom: -4px;
+  gap: 4px;
+}
+
+/* Input row inside SAN */
+.certificate-form .extension-row .san-value .input-row {
+  display: flex;
+  gap: 10px;
+}
+
+.certificate-form .extension-row .san-value .input-row > :first-child {
+  flex: 43;
+}
+
+.certificate-form .extension-row .san-value .input-row > :not(:first-child) {
+  flex: 100;
+}
+
+/* Chip text */
+::ng-deep mat-chip-row .text-value {
+  display: block;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 332px;
+  text-align: start;
+  height: 19px;
+  color: var(--gray-400);
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 36px;
+  gap: 20px;
+}
+
+/* Tab content padding */
+.tab-content {
+  padding: 64px 72px 72px 72px;
+}
+
+/* Button sizes */
+.large-btn {
+  width: 100%;
+}
+
+.medium-btn {
+  font-size: 16px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  width: 50%;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* Remove material field subscript (hint/error line) */
+::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
+}
+
+/* Upload area */
+.upload-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 140px;
+  width: 100%;
+  cursor: pointer;
+}
+
+/* Upload box */
+.upload-box {
+  border: 1px dashed var(--gray-300);
+  border-image-width: 1;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  background: transparent;
+  color: var(--gray-300);
+  width: 100%;
+  transition: box-shadow 0.2s ease;
+}
+
+/* Highlight when dragging */
+.upload-box.dragging {
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+/* Larger upload icon */
+.larger-icon {
+  transform: scale(1.7);
+  margin-bottom: 12px;
+}
+
+/* File name text */
+.file-name {
+  color: var(--white);
+  font-size: 0.85rem;
+}
+
+/* Hint text */
+.hint {
+  font-size: 0.75rem;
+  color: var(--gray-300);
+}
+
+/* Selected file row */
+.selected-file {
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
+
+/* Hide element */
+.hidden {
+  display: none;
+}
+
+.tab-toggle {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding: 16px 24px 0 24px;
+}
+
+.tab-btn {
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 2px solid var(--color-primary);
+  background: var(--white);
+  color: var(--color-primary-dark);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  transition: box-shadow .2s ease, transform .06s ease, background .2s ease, color .2s ease;
+}
+
+.tab-btn:hover {
+  box-shadow: 6px 6px var(--color-accent);
+}
+
+.tab-btn.active {
+  background: var(--color-primary);
+  color: var(--white);
+  border-color: var(--color-primary);
+  transform: translate(-1px, -1px);
+}

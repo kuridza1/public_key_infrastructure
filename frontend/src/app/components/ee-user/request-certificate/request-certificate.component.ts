@@ -11,12 +11,10 @@ import {MatTab, MatTabContent, MatTabGroup} from '@angular/material/tabs';
 import {MatDialog} from '@angular/material/dialog';
 import {KeysDialogComponent} from './keys-dialog/keys-dialog.component';
 import {MatIconModule} from '@angular/material/icon';
-import {CustomDateAdapter} from '../../common/custom-components/custom-date/custom-date-adapter';
-import {CUSTOM_DATE_FORMATS} from '../../common/custom-components/custom-date/custom-date-formats';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {UsersService} from '../../../services/users/users.service';
 import {CaUser} from '../../../models/CaUser';
-import {ToastrService} from '../../common/toastr/toastr.service';
+import {ToastrService} from '../../helpers/toastr/toastr.service';
 import {MatChipRemove, MatChipRow, MatChipSet} from '@angular/material/chips';
 import {KeyUsageValue} from '../../../models/KeyUsageValue';
 import {ExtendedKeyUsageValue} from '../../../models/ExtendedKeyUsageValue';
@@ -38,20 +36,12 @@ import {CertificateRequestsService} from '../../../services/certificates/certifi
     MatSelectModule,
     NgForOf,
     NgIf,
-    MatTabGroup,
-    MatTab,
-    MatTabContent,
     MatProgressSpinner,
     MatChipRemove,
     MatChipRow,
-    MatChipSet
-  ],
-  providers: [
-    {provide: DateAdapter, useClass: CustomDateAdapter},
-    {provide: MAT_DATE_FORMATS, useValue: CUSTOM_DATE_FORMATS}
   ],
   templateUrl: './request-certificate.component.html',
-  styleUrl: './request-certificate.component.scss'
+  styleUrl: './request-certificate.component.css'
 })
 export class RequestCertificateComponent implements OnInit {
   @ViewChild('notAfterCSRModel') dateNotAfterCSRModel!: NgModel;
@@ -68,7 +58,11 @@ export class RequestCertificateComponent implements OnInit {
 
   loading = true;
   caUsers: CaUser[] = [];
+  activeTab: 'csr' | 'gen' = 'csr';
 
+  setActive(tab: 'csr' | 'gen') {
+    this.activeTab = tab;
+  }
   protected readonly ExtendedKeyUsageValue = ExtendedKeyUsageValue;
   protected readonly KeyUsageValue = KeyUsageValue;
 

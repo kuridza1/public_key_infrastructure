@@ -11,7 +11,7 @@ import {DownloadCertificateRequest} from '../../models/DownloadCertificateReques
 })
 export class CertificatesService {
   httpClient = inject(HttpClient)
-  urlCore = "https://localhost:8081/api/v1/certificates"
+  urlCore = "https://localhost:8081/api/certificates"
 
   issueCertificate(createCertificate: CreateCertificate): Observable<string> {
     return this.httpClient.post<string>(`${this.urlCore}/issue`, createCertificate);

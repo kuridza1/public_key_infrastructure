@@ -13,6 +13,8 @@ import {authGuard, noAuthGuard, roleGuard} from './services/auth/auth.guard';
 import { LoginComponent } from './components/user/login/login.component';
 import { RegistrationComponent } from './components/user/registration/registration.component';
 import { Role } from './models/Role';
+import { KeysDialogComponent } from './components/ee-user/request-certificate/keys-dialog/keys-dialog.component';
+import { RequestCertificateComponent } from './components/ee-user/request-certificate/request-certificate.component';
 // import {RoleRedirectComponent} from './components/common/role-redirect/role-redirect.component';
 // import {EmailConfirmationComponent} from './components/anonymous/email-confirmation/email-confirmation/email-confirmation.component';
 
@@ -51,6 +53,8 @@ export const routes: Routes = [
      canActivate: [authGuard, roleGuard],
      data: { roles: ['CaUser'] as Role[] },
    },
+
+   { path: 'request-cert', component: RequestCertificateComponent}
 //   {
 //     path: 'issue-certificate',
 //     component: IssueCertificateComponent,

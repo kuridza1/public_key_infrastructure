@@ -11,7 +11,7 @@ import {CSRApprove} from '../../models/CSRApprove';
 })
 export class CertificateRequestsService {
   httpClient = inject(HttpClient)
-  urlCore = "https://localhost:8081/api/v1/certificate-requests"
+  urlCore = "https://localhost:8081/api/certificate-requests"
 
   createRequest(request: CertificateRequest): Observable<KeyPair> {
     return this.httpClient.post<KeyPair>(`${this.urlCore}/form`, request);

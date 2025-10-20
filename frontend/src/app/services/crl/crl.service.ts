@@ -9,7 +9,7 @@ import {RevokeCertificate} from '../../models/RevokeCertificate';
 })
 export class  CrlService {
   httpClient = inject(HttpClient)
-  urlCore = "https://localhost:8081/api/v1/crl"
+  urlCore = "https://localhost:8081/api/crl"
 
   getAllRevokedCertificates(): Observable<RevokedCertificate[]> {
     return this.httpClient.get<RevokedCertificate[]>(`${this.urlCore}/web`);
