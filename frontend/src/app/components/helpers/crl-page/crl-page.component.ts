@@ -42,7 +42,7 @@ import {MatProgressSpinner} from '@angular/material/progress-spinner';
     MatProgressSpinner
   ],
   templateUrl: './crl-page.component.html',
-  styleUrl: './crl-page.component.scss'
+  styleUrl: './crl-page.component.css'
 })
 export class CrlPageComponent implements OnInit {
   dialog = inject(MatDialog);

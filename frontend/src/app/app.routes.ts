@@ -20,22 +20,22 @@ export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegistrationComponent, canActivate: [noAuthGuard] },
-//   { path: 'crl', component: CrlPageComponent },
+  { path: 'crl', component: CrlPageComponent },
 
 
   // EeUser
-//   {
-//     path: 'my-certificates',
-//     component: MyCertificatesComponent,
-//     canActivate: [authGuard, roleGuard],
-//     data: { roles: ['EeUser', 'CaUser'] as Role[] }, // CaUser as well
-//   },
-//   {
-//     path: 'request-certificate',
-//     component: RequestCertificateComponent,
-//     canActivate: [authGuard, roleGuard],
-//     data: { roles: ['EeUser'] as Role[] },
-//   },
+  {
+    path: 'my-certificates',
+    component: MyCertificatesComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['EeUser', 'CaUser'] as Role[] }, // CaUser as well
+  },
+  {
+    path: 'request-certificate',
+    component: RequestCertificateComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['EeUser'] as Role[] },
+  },
 
 //   // CaUser
     {
@@ -50,28 +50,27 @@ export const routes: Routes = [
      canActivate: [authGuard, roleGuard],
      data: { roles: ['CaUser'] as Role[] },
    },
-//   {
-//     path: 'issue-certificate',
-//     component: IssueCertificateComponent,
-//     canActivate: [authGuard, roleGuard],
-//     data: { roles: ['CaUser', 'Admin'] as Role[] }, // both CaUser and Admin
-//   },
+  {
+    path: 'issue-certificate',
+    component: IssueCertificateComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['CaUser', 'Admin'] as Role[] }, // both CaUser and Admin
+  },
 
-//   // Admin
-//   {
-//     path: 'all-certificates',
-//     component: AllCertificatesComponent,
-//     canActivate: [authGuard, roleGuard],
-//     data: { roles: ['Admin'] as Role[] },
-//   },
-//   {
-//     path: 'manage-ca-users',
-//     component: CaUserManagementComponent,
-//     canActivate: [authGuard, roleGuard],
-//     data: { roles: ['Admin'] as Role[] },
-//   },
+  // Admin
+  {
+    path: 'all-certificates',
+    component: AllCertificatesComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Admin'] as Role[] },
+  },
+  {
+    path: 'manage-ca-users',
+    component: CaUserManagementComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Admin'] as Role[] },
+  },
 
-//   { path: 'confirm', component: EmailConfirmationComponent },
-//   { path: '**', component: RoleRedirectComponent, canActivate: [authGuard] }
-// ];
-]
+  { path: 'confirm', component: EmailConfirmationComponent },
+  { path: '**', component: RoleRedirectComponent, canActivate: [authGuard] }
+];
