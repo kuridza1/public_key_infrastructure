@@ -1,0 +1,14 @@
+<div class="container">
+  <button (click)="onNoClick()" class="close-button" mat-icon-button tabindex="-1">
+    <span class="material-symbols-rounded">close</span>
+  </button>
+
+  <mat-form-field appearance="outline">
+    <mat-label>PKCS12 password</mat-label>
+    <input matInput type="password" autocomplete="new-password" [(ngModel)]="password">
+  </mat-form-field>
+
+  <button (click)="closeDialog()" [disabled]="!password" class="blue-button finish">
+    Download
+  </button>
+</div>
