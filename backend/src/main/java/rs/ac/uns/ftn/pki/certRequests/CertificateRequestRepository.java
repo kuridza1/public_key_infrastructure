@@ -16,8 +16,8 @@ public interface CertificateRequestRepository extends JpaRepository<CertificateR
     @EntityGraph(attributePaths = {"requestedFrom"}) // eager the CA if helpful
     List<CertificateRequest> findAllByRequestedFrom_Id(UUID requestedFromId);
 
-    Optional<CertificateRequest> findById(UUID id);
+    Optional<CertificateRequest> findById(long id);
 
     // For ownership-checked deletes (returns number of rows deleted)
-    long deleteByIdAndRequestedFrom_Id(UUID id, UUID requestedFromId);
+    long deleteByIdAndRequestedFrom_Id(long id, UUID requestedFromId);
 }

@@ -164,7 +164,7 @@ public class CertificateRequestService {
      */
     public void deleteCertificateRequest(String userIdStr, String requestIdStr) {
         UUID caId = UUID.fromString(userIdStr);
-        UUID reqId = UUID.fromString(requestIdStr);
+        long reqId = Long.parseLong(requestIdStr);
 
         userRepo.findByIdAndRole(caId, Role.CaUser)
                 .orElseThrow(() -> new IllegalArgumentException("CA user not found!"));
