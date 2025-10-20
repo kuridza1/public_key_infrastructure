@@ -1,9 +1,12 @@
 package rs.ac.uns.ftn.pki.certificates.service;
 
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
+import org.bouncycastle.crypto.util.PrivateKeyInfoFactory;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rs.ac.uns.ftn.pki.certificates.dtos.CertificateResponse;
@@ -15,9 +18,16 @@ import rs.ac.uns.ftn.pki.dbContext.IUnifiedDbContext;
 import rs.ac.uns.ftn.pki.certificates.utils.CertificateBuilder;
 import rs.ac.uns.ftn.pki.users.model.Role;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
+import java.security.KeyFactory;
+import java.security.KeyStore;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -107,7 +117,6 @@ public class CertificateService {
     }
 
     public List<CertificateResponse> getAllValidSigningCertificates() {
-        // Fixed: Changed findByCanSign(true) to findByCanSignTrue()
         var allSigningCertificates = db.getCertificatesRepository().findByCanSignTrue();
         var allValidCertificates = allSigningCertificates.stream()
                 .filter(c -> getStatus(c) == CertificateStatus.ACTIVE)
@@ -181,39 +190,34 @@ public class CertificateService {
         db.getUserRepository().save(user);
     }
 
-    private Optional<Certificate> getCertificate(BigInteger serialNumber) {
-        return db.getCertificatesRepository().findByIdWithSigningCertificateAndSignedBy(serialNumber);
-    }
 
-    public byte[] getCertificateWithPasswordAsPkcs12(DownloadCertificateRequest downloadCertificateRequest,
-                                                     UUID requesterId, Role requesterRole) {
+    public byte[] getCertificateWithPasswordAsPkcs12(DownloadCertificateRequest request, UUID requesterId, Role requesterRole) throws Exception {
         List<X509Certificate> chain = new ArrayList<>();
-        var serialNumber = new BigInteger(downloadCertificateRequest.getCertificateSerialNumber());
-        var eeCertificate = getCertificate(serialNumber)
+        CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+        BigInteger serialNumber = new BigInteger(request.getCertificateSerialNumber());
+
+        Certificate eeCertificate = getCertificate(serialNumber)
                 .orElseThrow(() -> new RuntimeException("Certificate not found!"));
 
         var user = db.getUserRepository().findByIdWithCertificates(requesterId)
                 .orElseThrow(() -> new RuntimeException("User not found!"));
-        var requesterContainsCert = user.getMyCertificates().contains(eeCertificate);
-        var certSignedByRequester = eeCertificate.getSignedBy().getId().equals(requesterId);
 
-        // Fixed: Use proper enum comparison
-        if (!requesterContainsCert && !certSignedByRequester && requesterRole != Role.Admin)
+        boolean requesterContainsCert = user.getMyCertificates().contains(eeCertificate);
+        boolean certSignedByRequester = eeCertificate.getSignedBy().getId().equals(requesterId);
+
+        if (!requesterContainsCert && !certSignedByRequester && requesterRole != Role.Admin) {
             throw new RuntimeException("You cannot download certificates that aren't yours!");
+        }
 
-        var current = eeCertificate;
+        // Build certificate chain
+        Certificate current = eeCertificate;
         while (current != null) {
             if (current.getEncodedValue() == null || current.getEncodedValue().trim().isEmpty())
                 throw new RuntimeException("Certificate " + current.getSerialNumber() + " has no encoded value!");
 
-            try {
-                var bytes = Base64.getDecoder().decode(current.getEncodedValue());
-                var certificate = java.security.cert.CertificateFactory.getInstance("X.509")
-                        .generateCertificate(new java.io.ByteArrayInputStream(bytes));
-                chain.add((X509Certificate) certificate);
-            } catch (Exception e) {
-                throw new RuntimeException("Error parsing certificate: " + e.getMessage());
-            }
+            byte[] bytes = Base64.getDecoder().decode(current.getEncodedValue());
+            X509Certificate x509 = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(bytes));
+            chain.add(x509);
 
             if (current.getSigningCertificate() != null)
                 current = getCertificate(current.getSigningCertificate().getSerialNumber()).orElse(null);
@@ -221,16 +225,44 @@ public class CertificateService {
                 current = null;
         }
 
-        try {
-            // Simplified PKCS12 implementation - you'll need to implement this based on your specific needs
-            // This is a placeholder that returns the first certificate in the chain as bytes
-            if (!chain.isEmpty()) {
-                return chain.get(0).getEncoded();
+        if (chain.isEmpty())
+            throw new RuntimeException("No certificates in chain!");
+
+        // Convert BouncyCastle AsymmetricKeyParameter to java.security.PrivateKey
+        java.security.PrivateKey javaPrivateKey = null;
+        AsymmetricKeyParameter bcPrivateKey = eeCertificate.getPrivateKey();
+        if (bcPrivateKey != null) {
+            PrivateKeyInfo pkInfo;
+            if (bcPrivateKey.isPrivate()) {
+                pkInfo = PrivateKeyInfoFactory.createPrivateKeyInfo(bcPrivateKey);
+                javaPrivateKey = new JcaPEMKeyConverter().getPrivateKey(pkInfo);
             }
-            throw new RuntimeException("No certificates in chain");
-        } catch (Exception e) {
-            throw new RuntimeException("Error creating PKCS12: " + e.getMessage());
         }
+
+        // Create PKCS12 keystore
+        KeyStore pkcs12 = KeyStore.getInstance("PKCS12");
+        pkcs12.load(null, null);
+        String alias = chain.get(0).getSubjectDN().toString();
+
+        if (javaPrivateKey != null) {
+            X509Certificate[] certChain = chain.toArray(new X509Certificate[0]);
+            pkcs12.setKeyEntry(alias, javaPrivateKey, request.getPassword().toCharArray(), certChain);
+        } else {
+            pkcs12.setCertificateEntry(alias, chain.get(0));
+            for (int i = 1; i < chain.size(); i++) {
+                pkcs12.setCertificateEntry(alias + "-chain-" + i, chain.get(i));
+            }
+        }
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            pkcs12.store(baos, request.getPassword().toCharArray());
+            return baos.toByteArray();
+        }
+    }
+
+
+    private Optional<Certificate> getCertificate(BigInteger serialNumber) {
+        return db.getCertificatesRepository().findByIdWithSigningCertificateAndSignedBy(serialNumber);
     }
 
     public CertificateStatus getStatus(Certificate certificate) {
