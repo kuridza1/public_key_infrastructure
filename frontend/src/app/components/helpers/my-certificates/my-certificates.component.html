@@ -1,0 +1,95 @@
+<div *ngIf="loading" class="loading">
+  <mat-spinner></mat-spinner>
+</div>
+<div *ngIf="!loading" class="container">
+  <div class="table-header table-width">
+    <mat-table [dataSource]="certificatesDataSource">
+
+      <ng-container matColumnDef="issuedTo">
+        <mat-header-cell class="issuedTo" *matHeaderCellDef>Issued to (DN)</mat-header-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="issuedBy">
+        <mat-header-cell class="issuedBy" *matHeaderCellDef>Issued by (DN)</mat-header-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <mat-header-cell class="status" *matHeaderCellDef>Status</mat-header-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="validFrom">
+        <mat-header-cell class="validFrom" *matHeaderCellDef>Valid from</mat-header-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="validUntil">
+        <mat-header-cell class="validUntil" *matHeaderCellDef>Valid until</mat-header-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="serialNumber">
+        <mat-header-cell class="serialNumber" *matHeaderCellDef>Serial Number</mat-header-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <mat-header-cell class="actions" *matHeaderCellDef></mat-header-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    </mat-table>
+  </div>
+
+  <div class="table-width">
+    <mat-table [dataSource]="certificatesDataSource">
+      <ng-container matColumnDef="issuedTo">
+        <mat-cell class="issuedTo" *matCellDef="let certificate">
+          {{ certificate.issuedTo }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="issuedBy">
+        <mat-cell class="issuedBy" *matCellDef="let certificate">
+          {{ certificate.issuedBy }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <mat-cell class="status" *matCellDef="let certificate">
+          {{ certificate.status }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="validFrom">
+        <mat-cell class="validFrom" *matCellDef="let certificate">
+          {{ certificate.validFrom | date }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="validUntil">
+        <mat-cell class="validUntil" *matCellDef="let certificate">
+          {{ certificate.validUntil | date }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="serialNumber">
+        <mat-cell class="serialNumber" *matCellDef="let certificate">
+          <p class="fp">{{ certificate.prettySerialNumber }}</p>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <mat-cell class="actions" *matCellDef="let certificate">
+          <button *ngIf="auth.role === 'EeUser' && certificate.status !== 'Revoked'" (click)="openRevokeCertificate(certificate)" mat-icon-button>
+            <span class="material-symbols-rounded">block</span>
+          </button>
+          <button (click)="openCertificateDetails(certificate)" mat-icon-button>
+            <span class="material-symbols-rounded">quick_reference_all</span>
+          </button>
+          <button (click)="downloadCertificate(certificate)" mat-icon-button>
+            <span class="material-symbols-rounded">download</span>
+          </button>
+        </mat-cell>
+      </ng-container>
+
+      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+    </mat-table>
+  </div>
+</div>

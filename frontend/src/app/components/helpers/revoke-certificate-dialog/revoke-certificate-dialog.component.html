@@ -1,0 +1,20 @@
+<div class="container">
+  <button (click)="onNoClick()" class="close-button" mat-icon-button tabindex="-1">
+    <span class="material-symbols-rounded">close</span>
+  </button>
+
+  <mat-form-field appearance="outline">
+    <mat-select placeholder="Reason for revoking" tabindex="-1" [(ngModel)]="reason">
+      <mat-option [value]="RevocationReason.AffiliationChanged">Affiliation Changed</mat-option>
+      <mat-option [value]="RevocationReason.CessationOfOperation">Cessation of operation</mat-option>
+      <mat-option [value]="RevocationReason.KeyCompromise">Key compromise</mat-option>
+      <mat-option [value]="RevocationReason.PrivilegeWithdrawn">Privilege withdrawn</mat-option>
+      <mat-option [value]="RevocationReason.Superseded">Superseded</mat-option>
+      <mat-option [value]="RevocationReason.Unspecified">Unspecified</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <button (click)="closeDialog()" [disabled]="!reason" class="blue-button finish">
+    Revoke
+  </button>
+</div>
