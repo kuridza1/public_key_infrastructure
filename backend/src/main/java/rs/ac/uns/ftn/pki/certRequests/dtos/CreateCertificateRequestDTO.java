@@ -6,6 +6,9 @@ import java.util.stream.Collectors;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x509.X509Name;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.X500NameBuilder;
+import org.bouncycastle.asn1.x500.style.BCStyle;
 
 import rs.ac.uns.ftn.pki.certificates.model.extensionValues.*;
 public class CreateCertificateRequestDTO {
@@ -76,33 +79,27 @@ public class CreateCertificateRequestDTO {
     public void setCertificatePolicy(CertificatePolicy certificatePolicy) { this.certificatePolicy = certificatePolicy; }
 
     // Equivalent to C# GetX509Name()
-    public X509Name getX509Name() {
-        List<ASN1ObjectIdentifier> attrs = new ArrayList<>();
-        List<String> values = new ArrayList<>();
 
-        attrs.add(X509Name.CN);
-        values.add(commonName);
+    public X500Name getX500Name() {
+        X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
 
-        if (organization != null && !organization.isEmpty()) {
-            attrs.add(X509Name.O);
-            values.add(organization);
-        }
+        // Common Name (mandatory)
+        if (commonName != null && !commonName.isEmpty())
+            builder.addRDN(BCStyle.CN, commonName);
 
-        if (organizationalUnit != null && !organizationalUnit.isEmpty()) {
-            attrs.add(X509Name.OU);
-            values.add(organizationalUnit);
-        }
+        // Optional fields
+        if (organization != null && !organization.isEmpty())
+            builder.addRDN(BCStyle.O, organization);
 
-        if (email != null && !email.isEmpty()) {
-            attrs.add(X509Name.EmailAddress);
-            values.add(email);
-        }
+        if (organizationalUnit != null && !organizationalUnit.isEmpty())
+            builder.addRDN(BCStyle.OU, organizationalUnit);
 
-        if (country != null && !country.isEmpty()) {
-            attrs.add(X509Name.C);
-            values.add(country);
-        }
+        if (email != null && !email.isEmpty())
+            builder.addRDN(BCStyle.EmailAddress, email);
 
-        return new X509Name(attrs, values);
+        if (country != null && !country.isEmpty())
+            builder.addRDN(BCStyle.C, country);
+
+        return builder.build();
     }
 }

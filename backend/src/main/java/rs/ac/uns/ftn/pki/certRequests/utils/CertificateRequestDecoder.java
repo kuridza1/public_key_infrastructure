@@ -5,6 +5,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.pkcs.Attribute;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
@@ -66,7 +67,7 @@ public final class CertificateRequestDecoder {
                 if (bcExt != null) {
                     BasicConstraints bc = BasicConstraints.getInstance(bcExt.getParsedValue());
                     BasicConstraintsValue value = new BasicConstraintsValue();
-                    value.setCa(bc.isCA());
+                    value.setIsCa(bc.isCA());
                     if (bc.getPathLenConstraint() != null) {
                         value.setPathLen(bc.getPathLenConstraint().intValue());
                     }

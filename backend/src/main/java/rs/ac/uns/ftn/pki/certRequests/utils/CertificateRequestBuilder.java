@@ -12,17 +12,7 @@ import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.pkcs.Attribute;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.asn1.x509.CertificatePolicies;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.Extensions;
-import org.bouncycastle.asn1.x509.ExtensionsGenerator;
-import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
-import org.bouncycastle.asn1.x509.GeneralNames;
-import org.bouncycastle.asn1.x509.KeyPurposeId;
-import org.bouncycastle.asn1.x509.KeyUsage;
-import org.bouncycastle.asn1.x509.NameConstraints;
-import org.bouncycastle.asn1.x509.PolicyInformation;
+import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -49,7 +39,7 @@ public final class CertificateRequestBuilder {
     ) {
         try {
             // Subject from DTO (DTO returns X509Name; convert to X500Name)
-            X500Name subject = new X500Name(request.getX509Name().toString());
+            X500Name subject = new X500Name(request.getX500Name().toString());
 
             // ----- Extensions -----
             ExtensionsGenerator extGen = new ExtensionsGenerator();
@@ -57,7 +47,7 @@ public final class CertificateRequestBuilder {
             // BasicConstraints
             BasicConstraintsValue bcVal = request.getBasicConstraints();
             if (bcVal != null) {
-                BasicConstraints bc = bcVal.isCa()
+                BasicConstraints bc = bcVal.getIsCa()
                         ? new BasicConstraints(bcVal.getPathLen() == null ? 0 : bcVal.getPathLen())
                         : new BasicConstraints(false);
                 extGen.addExtension(Extension.basicConstraints, true, bc);
@@ -87,18 +77,24 @@ public final class CertificateRequestBuilder {
             }
 
             // Subject Alternative Names
-            if (request.getSubjectAlternativeNames != null) {
+            if (request.getSubjectAlternativeNames() != null) {
                 ListOfNames sanList = request.getSubjectAlternativeNames();
-                GeneralNames san = sanList.toGeneralNames(); // assumes your domain class has this
-                extGen.addExtension(Extension.subjectAlternativeName, false, san);
+                // your helper returns GeneralName[]; wrap it:
+                org.bouncycastle.asn1.x509.GeneralName[] sanArray = sanList.toGeneralNames();
+                org.bouncycastle.asn1.x509.GeneralNames san = new org.bouncycastle.asn1.x509.GeneralNames(sanArray);
+
+                extGen.addExtension(org.bouncycastle.asn1.x509.Extension.subjectAlternativeName, false, san);
             }
 
-            // Issuer Alternative Names
+// Issuer Alternative Names
             if (request.getIssuerAlternativeNames() != null) {
                 ListOfNames ianList = request.getIssuerAlternativeNames();
-                GeneralNames ian = ianList.toGeneralNames();
-                extGen.addExtension(Extension.issuerAlternativeName, false, ian);
+                org.bouncycastle.asn1.x509.GeneralName[] ianArray = ianList.toGeneralNames();
+                org.bouncycastle.asn1.x509.GeneralNames ian = new org.bouncycastle.asn1.x509.GeneralNames(ianArray);
+
+                extGen.addExtension(org.bouncycastle.asn1.x509.Extension.issuerAlternativeName, false, ian);
             }
+
 
             // Name Constraints
             if (request.getNameConstraints() != null) {
@@ -106,8 +102,8 @@ public final class CertificateRequestBuilder {
                 var permitted = ncv.getPermitted().toGeneralSubtrees();
                 var excluded  = ncv.getExcluded().toGeneralSubtrees();
                 NameConstraints nc = new NameConstraints(
-                        permitted == null || permitted.size() == 0 ? null : permitted,
-                        excluded  == null || excluded.size()  == 0 ? null : excluded
+                        permitted == null || permitted.size() == 0 ? null : permitted.toArray(new GeneralSubtree[0]),
+                        excluded  == null || excluded.size()  == 0 ? null : excluded.toArray(new GeneralSubtree[0])
                 );
                 extGen.addExtension(Extension.nameConstraints, true, nc);
             }
