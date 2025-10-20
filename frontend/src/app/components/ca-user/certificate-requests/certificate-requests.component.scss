@@ -1,0 +1,61 @@
+@import "colors";
+@import "table";
+
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: $background;
+}
+
+.table-width {
+  min-width: 55vw;
+}
+
+.container {
+  background-color: $background2;
+  padding: 24px 24px 40px 24px;
+  border-radius: 24px;
+  margin: 90px 0 140px 0;
+}
+
+.fp {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 0;
+}
+
+// custom width
+
+mat-header-cell.subject,
+mat-cell.subject {
+  flex: 0 0 24%;
+}
+
+mat-header-cell.organization,
+mat-cell.organization {
+  flex: 0 0 24%;
+}
+
+mat-header-cell.organizationalUnit,
+mat-cell.organizationalUnit {
+  flex: 0 0 24%;
+}
+
+mat-header-cell.submittedOn,
+mat-cell.submittedOn {
+  flex: 0 0 22%;
+}
+
+mat-header-cell.actions,
+mat-cell.actions {
+  flex: 0 0 8%;
+}

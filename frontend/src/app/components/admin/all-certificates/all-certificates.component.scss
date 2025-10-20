@@ -1,0 +1,75 @@
+@import "colors";
+@import "table";
+
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: $background;
+}
+
+.table-width {
+  min-width: max(1300px, 70vw);
+  max-width: min(1400px, 70vw);
+}
+
+.container {
+  background-color: $background2;
+  padding: 24px 24px 40px 24px;
+  border-radius: 24px;
+  margin: 72px 0 140px 0;
+}
+
+.fp {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 0;
+}
+
+// custom width
+
+mat-header-cell.issuedTo,
+mat-cell.issuedTo {
+  flex: 0 0 22%;
+}
+
+mat-header-cell.issuedBy,
+mat-cell.issuedBy {
+  flex: 0 0 22%;
+}
+
+mat-header-cell.status,
+mat-cell.status {
+  flex: 0 0 7%;
+}
+
+mat-header-cell.validFrom,
+mat-cell.validFrom {
+  flex: 0 0 9%;
+}
+
+mat-header-cell.validUntil,
+mat-cell.validUntil {
+  flex: 0 0 9%;
+}
+
+mat-header-cell.serialNumber,
+mat-cell.serialNumber {
+  flex: 0 0 20%;
+}
+
+mat-header-cell.actions,
+mat-cell.actions {
+  flex: 0 0 11%;
+  justify-content: flex-end;
+  padding-right: 7px;
+  display: flex;
+}

@@ -1,0 +1,72 @@
+<div class="container">
+  <div class="table-header table-width">
+    <mat-table [dataSource]="caUsersDataSource">
+
+      <ng-container matColumnDef="name">
+        <mat-header-cell class="name" *matHeaderCellDef>Name</mat-header-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="surname">
+        <mat-header-cell class="surname" *matHeaderCellDef>Surname</mat-header-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="organization">
+        <mat-header-cell class="organization" *matHeaderCellDef>Organization</mat-header-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="email">
+        <mat-header-cell class="email" *matHeaderCellDef>Email</mat-header-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <mat-header-cell class="actions" *matHeaderCellDef></mat-header-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    </mat-table>
+  </div>
+
+  <div class="table-width">
+    <mat-table [dataSource]="caUsersDataSource">
+      <ng-container matColumnDef="name">
+        <mat-cell class="name" *matCellDef="let caUser">
+          {{ caUser.name }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="surname">
+        <mat-cell class="surname" *matCellDef="let caUser">
+          {{ caUser.surname }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="organization">
+        <mat-cell class="organization" *matCellDef="let caUser">
+          {{ caUser.organization }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="email">
+        <mat-cell class="email" *matCellDef="let caUser">
+          {{ caUser.email }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <mat-cell class="actions" *matCellDef="let caUser">
+          <button (click)="openAssignNewCertificate(caUser)" mat-icon-button>
+            <span class="material-symbols-rounded">autorenew</span>
+          </button>
+        </mat-cell>
+      </ng-container>
+
+      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+    </mat-table>
+  </div>
+
+  <div class="create-button">
+    <button (click)="openRegisterDialog()" class="blue-button align-icon">
+      <span class="material-symbols-rounded">add</span> Create new CA user
+    </button>
+  </div>
+</div>

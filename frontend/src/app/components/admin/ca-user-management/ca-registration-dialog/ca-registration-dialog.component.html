@@ -1,0 +1,47 @@
+<div *ngIf="loading" class="loading min-height-loading">
+  <mat-spinner></mat-spinner>
+</div>
+<form *ngIf="!loading" class="container" #certForm="ngForm" (ngSubmit)="onSubmit()">
+  <button (click)="onNoClick()" class="close-button" mat-icon-button tabindex="-1">
+    <span class="material-symbols-rounded">close</span>
+  </button>
+  <p class="large-text">CA registration</p>
+
+  <mat-form-field appearance="outline">
+    <mat-label>CA signing certificate</mat-label>
+    <mat-select [(ngModel)]="signingCertificate" name="signingCertificate" required>
+      <mat-option *ngFor="let cert of data.allSigningCertificates" [value]="cert">
+        {{ cert.prettySerialNumber }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Name</mat-label>
+    <input matInput [(ngModel)]="name" name="name" required/>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Surname</mat-label>
+    <input matInput [(ngModel)]="surname" name="surname" required/>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Organization</mat-label>
+    <input matInput [(ngModel)]="organization" name="organization" required/>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>E-mail</mat-label>
+    <input matInput [(ngModel)]="email" name="email" required/>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Password</mat-label>
+    <input matInput type="password" [(ngModel)]="password" name="password" required/>
+  </mat-form-field>
+
+  <button type="submit" [disabled]="certForm.invalid" class="blue-button finish">
+    Register
+  </button>
+</form>

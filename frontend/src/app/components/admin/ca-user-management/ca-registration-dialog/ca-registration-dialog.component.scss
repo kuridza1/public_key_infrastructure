@@ -1,0 +1,36 @@
+@import "colors";
+@import "buttons";
+
+.container {
+  background-color: $background;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  padding: 80px 60px 60px 60px;
+  color: $text;
+}
+
+.large-text {
+  font-size: xx-large;
+  margin: 0 0 36px 0;
+}
+
+mat-form-field {
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.finish {
+  width: 9rem;
+  margin-top: 24px;
+}
+
+.min-height-loading {
+  min-height: 250px;
+}
+
+::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
+}
