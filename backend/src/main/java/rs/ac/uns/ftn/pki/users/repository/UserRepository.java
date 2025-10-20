@@ -43,7 +43,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
            """)
     boolean userHasCertificate(@Param("userId") UUID userId,
                                @Param("certificateSerialNumber") java.math.BigInteger certificateSerialNumber);
-}
     User findByEmail(String email);
 
     @EntityGraph(attributePaths = "myCertificates")
