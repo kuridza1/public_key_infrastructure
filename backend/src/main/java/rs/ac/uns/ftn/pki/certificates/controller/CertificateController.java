@@ -11,7 +11,7 @@ import java.util.UUID;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/certificates")
+@RequestMapping("/api/certificates")
 public class CertificateController {
 
     private final CertificateService certificateService;

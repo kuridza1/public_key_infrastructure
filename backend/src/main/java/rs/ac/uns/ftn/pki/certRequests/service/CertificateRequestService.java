@@ -1,9 +1,8 @@
-package rs.ac.uns.ftn.pki.certRequests;
+package rs.ac.uns.ftn.pki.certRequests.service;
 
 import java.io.StringWriter;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -20,6 +19,7 @@ import rs.ac.uns.ftn.pki.certRequests.dtos.CertificateRequestResponse;
 import rs.ac.uns.ftn.pki.certRequests.dtos.CreateCertificateRequestDTO;
 import rs.ac.uns.ftn.pki.certRequests.dtos.KeyPairDto;
 import rs.ac.uns.ftn.pki.certRequests.model.CertificateRequest;
+import rs.ac.uns.ftn.pki.certRequests.repository.CertificateRequestRepository;
 import rs.ac.uns.ftn.pki.certRequests.utils.CertificateRequestBuilder;
 import rs.ac.uns.ftn.pki.certRequests.utils.CertificateRequestDecoder;
 import rs.ac.uns.ftn.pki.certRequests.utils.CertificateIssuerPort;

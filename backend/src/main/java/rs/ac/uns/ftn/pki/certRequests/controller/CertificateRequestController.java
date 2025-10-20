@@ -1,4 +1,4 @@
-package rs.ac.uns.ftn.pki.certRequests;
+package rs.ac.uns.ftn.pki.certRequests.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -7,16 +7,15 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.pki.certRequests.dtos.*;
-import rs.ac.uns.ftn.pki.certRequests.CertificateRequestService;
+import rs.ac.uns.ftn.pki.certRequests.service.CertificateRequestService;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/certificate-requests")
+@RequestMapping("/api/certificate-requests")
 public class CertificateRequestController {
 
     private final CertificateRequestService certificateRequestService;

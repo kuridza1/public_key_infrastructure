@@ -1,9 +1,9 @@
 package rs.ac.uns.ftn.pki.dbContext;
 
 import org.springframework.stereotype.Component;
-import rs.ac.uns.ftn.pki.certRequests.CertificateRequestRepository;
+import rs.ac.uns.ftn.pki.certRequests.repository.CertificateRequestRepository;
 import rs.ac.uns.ftn.pki.certificates.repository.CertificateRepository;
-import rs.ac.uns.ftn.pki.crl.RevokedCertificateRepository;
+import rs.ac.uns.ftn.pki.crl.repository.RevokedCertificateRepository;
 import rs.ac.uns.ftn.pki.users.repository.UserRepository;
 import rs.ac.uns.ftn.pki.users.repository.VerificationTokenRepository;
 
