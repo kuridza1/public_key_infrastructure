@@ -17,7 +17,7 @@ import {CdkCopyToClipboard} from '@angular/cdk/clipboard';
     CdkCopyToClipboard
   ],
   templateUrl: './certificate-details-dialog.component.html',
-  styleUrl: './certificate-details-dialog.component.scss'
+  styleUrl: './certificate-details-dialog.component.css'
 })
 export class CertificateDetailsDialogComponent {
   dialogRef = inject(MatDialogRef<CertificateDetailsDialogComponent, null>);

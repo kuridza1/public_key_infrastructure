@@ -1,0 +1,71 @@
+/* Container */
+.container {
+  background-color: var(--background);
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  padding: 86px 64px 64px 72px;
+  color: var(--text);
+}
+
+/* Angular Material form fields */
+mat-form-field {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  width: 100%;
+}
+
+/* Textarea styling */
+.textarea {
+  resize: none;
+  font-weight: 400;
+  padding-right: 8px;
+  font-family: 'Consolas', monospace !important;
+}
+
+/* WebKit scrollbars */
+.textarea::-webkit-scrollbar {
+  width: 4px;
+}
+
+.textarea::-webkit-scrollbar-thumb {
+  background: var(--edge2);
+  border-radius: 6px;
+}
+
+.textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--edge3);
+  cursor: pointer;
+}
+
+.textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Disabled textarea color consistency */
+.textarea:disabled {
+  color: var(--text);
+  -webkit-text-fill-color: var(--text);
+}
+
+/* Firefox scrollbar */
+@-moz-document url-prefix() {
+  .textarea {
+    scrollbar-width: thin;
+    scrollbar-color: var(--edge2) transparent;
+  }
+}
+
+/* Hide Angular Material hint/error line */
+::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
+}
+
+/* Blue action button */
+.blue-button {
+  width: 200px;
+  margin-top: 24px;
+  vertical-align: middle;
+}
