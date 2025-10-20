@@ -16,7 +16,7 @@ import {FormsModule} from '@angular/forms';
     FormsModule
   ],
   templateUrl: './download-certificate-pw-dialog.component.html',
-  styleUrl: './download-certificate-pw-dialog.component.scss'
+  styleUrl: './download-certificate-pw-dialog.component.css'
 })
 export class DownloadCertificatePwDialogComponent {
   dialogRef = inject(MatDialogRef<DownloadCertificatePwDialogComponent, string | undefined | null>)
