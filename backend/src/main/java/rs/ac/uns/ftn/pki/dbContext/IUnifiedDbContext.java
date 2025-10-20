@@ -1,6 +1,6 @@
 package rs.ac.uns.ftn.pki.dbContext;
 
-import rs.ac.uns.ftn.pki.certRequests.CertificateRequestRepository;
+import rs.ac.uns.ftn.pki.certRequests.repository.CertificateRequestRepository;
 import rs.ac.uns.ftn.pki.certificates.repository.CertificateRepository;
 import rs.ac.uns.ftn.pki.crl.repository.RevokedCertificateRepository;
 import rs.ac.uns.ftn.pki.users.repository.*;

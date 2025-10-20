@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/crl")
+@RequestMapping("/api/crl")
 public class CrlController {
 
     private final CrlService crlService;
