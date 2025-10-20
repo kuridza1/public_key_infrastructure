@@ -13,6 +13,7 @@ import {authGuard, noAuthGuard, roleGuard} from './services/auth/auth.guard';
 import { LoginComponent } from './components/user/login/login.component';
 import { RegistrationComponent } from './components/user/registration/registration.component';
 import { Role } from './models/Role';
+import { SignedCertificatesComponent } from './components/CA/signed-certificates/signed-certificates.component';
 // import {RoleRedirectComponent} from './components/common/role-redirect/role-redirect.component';
 // import {EmailConfirmationComponent} from './components/anonymous/email-confirmation/email-confirmation/email-confirmation.component';
 
@@ -39,12 +40,12 @@ export const routes: Routes = [
 //   },
 
 //   // CaUser
-//   {
-//     path: 'signed-certificates',
-//     component: SignedCertificatesComponent,
-//     canActivate: [authGuard, roleGuard],
-//     data: { roles: ['CaUser'] as Role[] },
-//   },
+    {
+     path: 'signed-certificates',
+     component: SignedCertificatesComponent,
+     canActivate: [authGuard, roleGuard],
+     data: { roles: ['CaUser'] as Role[] },
+   },
    {
      path: 'certificate-requests',
      component: CertificateRequestsComponent,

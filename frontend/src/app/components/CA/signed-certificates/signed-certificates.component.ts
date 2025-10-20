@@ -45,7 +45,7 @@ import { RevocationReason } from '../../../models/RevocationReason';
     NgIf
   ],
   templateUrl: './signed-certificates.component.html',
-  styleUrl: './signed-certificates.component.scss'
+  styleUrl: './signed-certificates.component.css'
 })
 export class SignedCertificatesComponent implements OnInit {
   certificatesService = inject(CertificatesService);
