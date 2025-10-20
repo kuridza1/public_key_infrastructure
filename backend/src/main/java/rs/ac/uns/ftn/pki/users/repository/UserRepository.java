@@ -15,7 +15,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     List<User> findAllByRole(Role role);
 
     @Query("""
-           select distinct u from User u
+
+            select distinct u from User u
            left join fetch u.myCertificates c
            where u.role = :role
            """)
@@ -24,4 +25,12 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     User findByEmail(String email);
 
     @EntityGraph(attributePaths = "myCertificates")
-    Optional<User> findWithMyCertificatesById(UUID id);}
+    Optional<User> findWithMyCertificatesById(UUID id);
+
+
+    Optional<User> findByIdAndRole(UUID id, Role role);
+
+    @EntityGraph(attributePaths = {"myCertificates"})
+    Optional<User> findWithMyCertificatesByIdAndRole(UUID id, Role role);
+
+}
