@@ -8,7 +8,7 @@ import {CaUser} from '../../models/CaUser';
 })
 export class UsersService {
   httpClient = inject(HttpClient)
-  urlCore = "https://localhost:8081/api/v1/users"
+  urlCore = "https://localhost:8081/api/users"
 
   getAllCaUsers(): Observable<CaUser[]> {
     return this.httpClient.get<CaUser[]>(`${this.urlCore}/get-all-ca-users`);

@@ -1,0 +1,222 @@
+@import "colors";
+@import "buttons";
+
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: $background;
+}
+
+.certificate-container {
+  position: relative;
+  background-color: $background2;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 90px 0 140px 0;
+}
+
+::ng-deep .mat-mdc-tab {
+  height: 64px !important;
+  font-size: medium !important;
+  width: 50%;
+}
+
+.certificate-form {
+  display: flex;
+  flex-direction: column;
+  width: 700px;
+  gap: 20px;
+
+  .row {
+    display: flex;
+    gap: 20px;
+
+    mat-form-field {
+      flex: 1;
+
+      ::ng-deep .mat-mdc-input-element {
+        color: $text;
+      }
+
+      ::ng-deep .mat-mdc-floating-label {
+        color: $whitish !important;
+      }
+    }
+  }
+
+  .extensions-container {
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+    height: auto;
+    gap: 20px;
+  }
+
+  .extension-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+
+    button[mat-icon-button] {
+      margin-left: -8px;
+      transform: scale(1.1);
+      color: $whitish;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      top: 8px;
+    }
+
+    > :first-child {
+      flex: 70;
+      min-width: 260px;
+    }
+
+    > :not(:first-child):not(:last-child) {
+      flex: 100;
+    }
+
+    > :last-child {
+      flex: 0 0 auto;
+    }
+
+    .extension-value {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      gap: 16px;
+    }
+
+    ::ng-deep.extension-value:has(.san-value) {
+      //gap: 24px !important;
+    }
+
+    .extension-value-row {
+      display: flex;
+      max-width: 368px;
+      gap: 16px;
+
+      > :first-child {
+        flex: 64;
+      }
+
+      > :not(:first-child) {
+        flex: 100;
+      }
+    }
+
+    .san-value {
+      display: flex;
+      flex-direction: column;
+      max-width: 368px;
+      margin-bottom: -4px;
+      gap: 4px;
+
+      .input-row {
+        display: flex;
+        gap: 10px;
+
+        > :first-child {
+          flex: 43;
+        }
+
+        > :not(:first-child) {
+          flex: 100;
+        }
+      }
+
+      mat-chip-row {
+        ::ng-deep .text-value {
+          display: block;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          max-width: 332px;
+          text-align: start;
+          height: 19px;
+          color: $pale-text;
+        }
+      }
+    }
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 36px;
+  gap: 20px;
+}
+
+.tab-content {
+  padding: 64px 72px 72px 72px;
+}
+
+.large-btn {
+  width: 100%;
+}
+
+.medium-btn {
+  font-size: 16px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  width: 50%;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
+}
+
+.upload-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 140px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.upload-box {
+  border: 1px dashed $whitish;
+  border-image-width: 1;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  background: transparent;
+  color: $whitish;
+  width: 100%;
+  transition: box-shadow 0.2s ease;
+}
+
+.upload-box.dragging {
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.larger-icon {
+  transform: scale(1.7);
+  margin-bottom: 12px;
+}
+
+.file-name {
+  color: #fff;
+  font-size: 0.85rem;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: $whitish;
+}
+
+.selected-file {
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
+
+.hidden {
+  display: none;
+}

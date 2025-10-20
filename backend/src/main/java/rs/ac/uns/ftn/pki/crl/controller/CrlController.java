@@ -1,9 +1,10 @@
-package rs.ac.uns.ftn.pki.crl;
+package rs.ac.uns.ftn.pki.crl.controller;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import rs.ac.uns.ftn.pki.crl.service.CrlService;
 import rs.ac.uns.ftn.pki.crl.dtos.RevokeCertificateRequest;
 import rs.ac.uns.ftn.pki.crl.dtos.RevokedCertificateResponse;
 import rs.ac.uns.ftn.pki.users.model.Role;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/crl")
+@RequestMapping("/api/crl")
 public class CrlController {
 
     private final CrlService crlService;

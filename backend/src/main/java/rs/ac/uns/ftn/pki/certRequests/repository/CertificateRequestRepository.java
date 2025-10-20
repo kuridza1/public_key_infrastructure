@@ -1,4 +1,4 @@
-package rs.ac.uns.ftn.pki.certRequests;
+package rs.ac.uns.ftn.pki.certRequests.repository;
 
 
 import java.util.List;

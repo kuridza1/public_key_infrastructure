@@ -3,17 +3,18 @@ package rs.ac.uns.ftn.pki.certRequests.utils;
 import java.security.PublicKey;
 import java.util.UUID;
 
-import org.springframework.stereotype.Component;
+import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import rs.ac.uns.ftn.pki.certificates.dtos.IssueCertificateRequest;
+import rs.ac.uns.ftn.pki.certificates.service.CertificateService;
 
-/**
- * Minimal port to issue a certificate from a CSR/public key.
- * Provide an adapter that calls your certificate module (or another system).
- */
-@Component
+@FunctionalInterface
 public interface CertificateIssuerPort {
     void issue(IssueCertificateRequest form,
                String caUserId,
                UUID endEntityUserId,
-               PublicKey publicKey);
+               AsymmetricKeyParameter publicKey);
 }
+
+

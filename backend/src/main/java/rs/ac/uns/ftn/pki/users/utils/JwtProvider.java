@@ -1,43 +1,62 @@
 package rs.ac.uns.ftn.pki.users.utils;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
-
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import rs.ac.uns.ftn.pki.users.model.User;
 
-import java.io.FileInputStream;
-import java.security.Key;
+import jakarta.annotation.PostConstruct;
+import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.cert.X509Certificate;
 import java.time.OffsetDateTime;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.UUID;
 
 @Component
 public class JwtProvider {
 
-    private final PrivateKey privateKey;
-    private final Key publicKey; // for validation
+    @Value("${auth.jwt.p12.path}")
+    private Resource keystoreResource;                 // <— handles classpath:/ file:/ etc.
 
-    public JwtProvider(
-            @Value("${auth.jwt.p12.path}") String p12Path,
-            @Value("${auth.jwt.p12.password}") String p12Password,
-            @Value("${auth.jwt.p12.alias:jwt}") String alias
-    ) throws Exception {
+    @Value("${auth.jwt.p12.password}")
+    private String storePassword;
+
+    // allow different key password; falls back to store password if not set
+    @Value("${auth.jwt.key.password:${auth.jwt.p12.password}}")
+    private String keyPassword;
+
+    // optional; if blank we auto-pick the first PrivateKeyEntry
+    @Value("${auth.jwt.p12.alias:}")
+    private String alias;
+
+    private PrivateKey privateKey;
+    private PublicKey publicKey;
+
+    @PostConstruct
+    void init() throws Exception {
         KeyStore ks = KeyStore.getInstance("PKCS12");
-        try (FileInputStream fis = new FileInputStream(resolvePath(p12Path))) {
-            ks.load(fis, p12Password.toCharArray());
+        try (InputStream is = keystoreResource.getInputStream()) {
+            ks.load(is, storePassword.toCharArray());
         }
-        this.privateKey = (PrivateKey) ks.getKey(alias, p12Password.toCharArray());
-        this.publicKey = ks.getCertificate(alias).getPublicKey();
+        String useAlias = resolveAlias(ks, alias);
+        this.privateKey = (PrivateKey) ks.getKey(useAlias, keyPassword.toCharArray());
+        X509Certificate cert = (X509Certificate) ks.getCertificate(useAlias);
+        this.publicKey = cert.getPublicKey();
     }
 
-    private static String resolvePath(String p) {
-        java.nio.file.Path path = java.nio.file.Paths.get(p);
-        if (path.isAbsolute()) return p;
-        return java.nio.file.Paths.get(System.getProperty("user.dir"), p).toString();
+    private static String resolveAlias(KeyStore ks, String preferred) throws Exception {
+        if (preferred != null && !preferred.isBlank()) return preferred;
+        Enumeration<String> e = ks.aliases();
+        while (e.hasMoreElements()) {
+            String a = e.nextElement();
+            if (ks.isKeyEntry(a)) return a;
+        }
+        throw new IllegalStateException("No PrivateKey entry found in PKCS#12 keystore.");
     }
 
     public record TokenResult(String jwt, OffsetDateTime exp) {}
@@ -46,7 +65,6 @@ public class JwtProvider {
     public TokenResult issueAccess(User u, String issuer, String audience, int minutes) {
         OffsetDateTime now = OffsetDateTime.now();
         OffsetDateTime exp = now.plusMinutes(minutes);
-
         String jwt = Jwts.builder()
                 .setIssuer(issuer)
                 .setAudience(audience)
@@ -60,14 +78,12 @@ public class JwtProvider {
                 .setExpiration(Date.from(exp.toInstant()))
                 .signWith(privateKey, SignatureAlgorithm.RS256)
                 .compact();
-
         return new TokenResult(jwt, exp);
     }
 
     public TokenResult issueRefresh(User u, String issuer, String audience, int ttlDays) {
         OffsetDateTime now = OffsetDateTime.now();
         OffsetDateTime exp = now.plusDays(ttlDays);
-
         String jwt = Jwts.builder()
                 .setIssuer(issuer)
                 .setAudience(audience)
@@ -79,7 +95,6 @@ public class JwtProvider {
                 .setExpiration(Date.from(exp.toInstant()))
                 .signWith(privateKey, SignatureAlgorithm.RS256)
                 .compact();
-
         return new TokenResult(jwt, exp);
     }
 
@@ -90,15 +105,12 @@ public class JwtProvider {
                     .requireAudience(audience)
                     .setSigningKey(publicKey)
                     .build();
-
             Jws<Claims> jws = parser.parseClaimsJws(token);
             Claims c = jws.getBody();
-
             if (!"refresh".equals(c.get("typ"))) {
                 return new RefreshValidation(false, null, "Wrong token type");
             }
-            String sub = c.getSubject();
-            UUID userId = UUID.fromString(sub);
+            UUID userId = UUID.fromString(c.getSubject());
             return new RefreshValidation(true, userId, null);
         } catch (ExpiredJwtException e) {
             return new RefreshValidation(false, null, "Expired");
