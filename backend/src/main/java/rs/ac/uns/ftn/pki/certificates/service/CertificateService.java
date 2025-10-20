@@ -288,6 +288,6 @@ public class CertificateService {
 
     private boolean isRevoked(Certificate certificate) {
         return db.getRevokedCertificatesRepository()
-                .existsByCertificateSerialNumber(certificate.getSerialNumber());
+                .existsRevokedCertificateByCertificateSerialNumber((certificate.getSerialNumber()));
     }
 }

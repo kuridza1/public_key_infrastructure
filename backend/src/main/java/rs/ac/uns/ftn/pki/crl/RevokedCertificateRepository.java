@@ -7,4 +7,6 @@ import rs.ac.uns.ftn.pki.crl.model.RevokedCertificate;
 
 public interface RevokedCertificateRepository extends JpaRepository<RevokedCertificate, Long> {
     Optional<RevokedCertificate> findByCertificate_SerialNumber(BigInteger serialNumber);
+
+    boolean existsRevokedCertificateByCertificateSerialNumber(BigInteger certificateSerialNumber);
 }
