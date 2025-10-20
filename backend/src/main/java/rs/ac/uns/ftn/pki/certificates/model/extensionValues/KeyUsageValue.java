@@ -1,4 +1,4 @@
-package rs.ac.uns.ftn.pki.certificates.extensionValues;
+package rs.ac.uns.ftn.pki.certificates.model.extensionValues;
 
 public enum KeyUsageValue {
     DigitalSignature,
