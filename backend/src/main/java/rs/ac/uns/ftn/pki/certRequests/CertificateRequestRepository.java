@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import rs.ac.uns.ftn.pki.certRequests.model.CertificateRequest;
 
 
@@ -19,5 +21,5 @@ public interface CertificateRequestRepository extends JpaRepository<CertificateR
     Optional<CertificateRequest> findById(UUID id);
 
     // For ownership-checked deletes (returns number of rows deleted)
-    long deleteByIdAndRequestedFrom_Id(UUID id, UUID requestedFromId);
+    long deleteByIdAndRequestedFrom_Id(long id, UUID requestedFromId);
 }

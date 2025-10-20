@@ -8,6 +8,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
@@ -164,7 +165,7 @@ public class CertificateRequestService {
      */
     public void deleteCertificateRequest(String userIdStr, String requestIdStr) {
         UUID caId = UUID.fromString(userIdStr);
-        UUID reqId = UUID.fromString(requestIdStr);
+        long reqId = Long.valueOf(requestIdStr);
 
         userRepo.findByIdAndRole(caId, Role.CaUser)
                 .orElseThrow(() -> new IllegalArgumentException("CA user not found!"));
@@ -198,7 +199,7 @@ public class CertificateRequestService {
 
         try {
             byte[] csrBytes = Base64.getDecoder().decode(req.getEncodedCsrNoHeader());
-            PublicKey publicKey = new JcaPKCS10CertificationRequest(new PKCS10CertificationRequest(csrBytes))
+            AsymmetricKeyParameter publicKey = (AsymmetricKeyParameter) new JcaPKCS10CertificationRequest(new PKCS10CertificationRequest(csrBytes))
                     .getPublicKey();
 
             // Delegate issuance via the tiny port (no dependency on CertificateService)
