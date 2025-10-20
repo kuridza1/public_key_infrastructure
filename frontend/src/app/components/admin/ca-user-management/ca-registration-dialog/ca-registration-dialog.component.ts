@@ -7,7 +7,7 @@ import {MatInput} from '@angular/material/input';
 import {NgForOf, NgIf} from '@angular/common';
 import {MatIconButton} from '@angular/material/button';
 import {Certificate} from '../../../../models/Certificate';
-import {ToastrService} from '../../../common/toastr/toastr.service';
+import {ToastrService} from '../../../helpers/toastr/toastr.service';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {CreateCaUser} from '../../../../models/CreateCaUser';
 import {AuthService} from '../../../../services/auth/auth.service';

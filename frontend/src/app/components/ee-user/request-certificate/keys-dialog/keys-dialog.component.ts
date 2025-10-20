@@ -5,7 +5,7 @@ import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {CdkCopyToClipboard} from '@angular/cdk/clipboard';
 import {MatInput} from '@angular/material/input';
 import {KeyPair} from '../../../../models/KeyPair';
-import {ToastrService} from '../../../common/toastr/toastr.service';
+import { ToastrService } from '../../../helpers/toastr/toastr.service';
 
 @Component({
   selector: 'app-keys-dialog',

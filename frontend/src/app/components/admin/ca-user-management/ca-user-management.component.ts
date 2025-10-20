@@ -14,8 +14,8 @@ import {CaRegistrationDialogComponent} from './ca-registration-dialog/ca-registr
 import {CaAddCertificateDialogComponent} from './ca-add-certificate-dialog/ca-add-certificate-dialog.component';
 import {CaUser} from '../../../models/CaUser';
 import {UsersService} from '../../../services/users/users.service';
-import {ToastrService} from '../../common/toastr/toastr.service';
-import {CertificatesService} from '../../../services/certificates/certificates.service';
+import { ToastrService } from '../../helpers/toastr/toastr.service';
+import { CertificatesService } from '../../../services/certificates/certificate.service';
 import {Certificate} from '../../../models/Certificate';
 import {AddCertificateToCaUser} from '../../../models/AddCertificateToCaUser';
 

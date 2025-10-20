@@ -1,28 +1,27 @@
-import {Component, inject, OnInit, ViewChild} from '@angular/core';
-import {FormsModule, NgForm, NgModel} from '@angular/forms';
-import {MatDatepickerModule} from '@angular/material/datepicker';
-import {MatFormFieldModule} from '@angular/material/form-field';
-import {MatButtonModule} from '@angular/material/button';
-import {MatInputModule} from '@angular/material/input';
-import {DateAdapter, MAT_DATE_FORMATS, MatNativeDateModule} from '@angular/material/core';
-import {MatSelect, MatSelectModule} from '@angular/material/select';
-import {NgForOf, NgIf} from '@angular/common';
-import {MatTab, MatTabContent, MatTabGroup} from '@angular/material/tabs';
-import {MatDialog} from '@angular/material/dialog';
-import {KeysDialogComponent} from './keys-dialog/keys-dialog.component';
-import {MatIconModule} from '@angular/material/icon';
-import {CustomDateAdapter} from '../../common/custom-components/custom-date/custom-date-adapter';
-import {CUSTOM_DATE_FORMATS} from '../../common/custom-components/custom-date/custom-date-formats';
-import {MatProgressSpinner} from '@angular/material/progress-spinner';
-import {UsersService} from '../../../services/users/users.service';
-import {CaUser} from '../../../models/CaUser';
-import {ToastrService} from '../../common/toastr/toastr.service';
-import {MatChipRemove, MatChipRow, MatChipSet} from '@angular/material/chips';
-import {KeyUsageValue} from '../../../models/KeyUsageValue';
-import {ExtendedKeyUsageValue} from '../../../models/ExtendedKeyUsageValue';
-import {AuthService} from '../../../services/auth/auth.service';
-import {CertificateRequest} from '../../../models/CertificateRequest';
-import {CertificateRequestsService} from '../../../services/certificates/certificate-requests.service';
+import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { FormsModule, NgForm, NgModel } from '@angular/forms';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatSelect, MatSelectModule } from '@angular/material/select';
+import { NgForOf, NgIf } from '@angular/common';
+import { MatTab, MatTabContent, MatTabGroup } from '@angular/material/tabs';
+import { MatDialog } from '@angular/material/dialog';
+import { KeysDialogComponent } from './keys-dialog/keys-dialog.component';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatChipRemove, MatChipRow, MatChipSet } from '@angular/material/chips';
+
+import { UsersService } from '../../../services/users/users.service';
+import { CaUser } from '../../../models/CaUser';
+import { ToastrService } from '../../helpers/toastr/toastr.service';
+import { KeyUsageValue } from '../../../models/KeyUsageValue';
+import { ExtendedKeyUsageValue } from '../../../models/ExtendedKeyUsageValue';
+import { AuthService } from '../../../services/auth/auth.service';
+import { CertificateRequest } from '../../../models/CertificateRequest';
+import { CertificateRequestsService } from '../../../services/certificates/certificate-requests.service';
 
 @Component({
   selector: 'app-request-certificate',
@@ -45,10 +44,6 @@ import {CertificateRequestsService} from '../../../services/certificates/certifi
     MatChipRemove,
     MatChipRow,
     MatChipSet
-  ],
-  providers: [
-    {provide: DateAdapter, useClass: CustomDateAdapter},
-    {provide: MAT_DATE_FORMATS, useValue: CUSTOM_DATE_FORMATS}
   ],
   templateUrl: './request-certificate.component.html',
   styleUrl: './request-certificate.component.scss'
@@ -76,24 +71,25 @@ export class RequestCertificateComponent implements OnInit {
   dateNotBefore: Date | null = null;
   dateNotAfter: Date | null = null;
   signingOrganization: CaUser | null = null;
-  commonName = ''
-  organization = ''
-  organizationalUnit = ''
-  email = ''
-  country = ''
+
+  commonName = '';
+  organization = '';
+  organizationalUnit = '';
+  email = '';
+  country = '';
 
   fileName: string | null = null;
   csrFile: File | undefined = undefined;
   isDragging = false;
 
   allExtensionKeys = [
-    {value: 'keyUsage', label: 'Key Usage'},
-    {value: 'extendedKeyUsage', label: 'Extended Key Usage'},
-    {value: 'subjectAlternativeNames', label: 'Subject Alternative Names'},
-    {value: 'issuerAlternativeNames', label: 'Issuer Alternative Names'},
-    {value: 'nameConstraints', label: 'Name Constraints'},
-    {value: 'basicConstraints', label: 'Basic Constraints'},
-    {value: 'certificatePolicies', label: 'Certificate Policies'}
+    { value: 'keyUsage', label: 'Key Usage' },
+    { value: 'extendedKeyUsage', label: 'Extended Key Usage' },
+    { value: 'subjectAlternativeNames', label: 'Subject Alternative Names' },
+    { value: 'issuerAlternativeNames', label: 'Issuer Alternative Names' },
+    { value: 'nameConstraints', label: 'Name Constraints' },
+    { value: 'basicConstraints', label: 'Basic Constraints' },
+    { value: 'certificatePolicies', label: 'Certificate Policies' }
   ];
 
   ngOnInit() {
@@ -116,18 +112,8 @@ export class RequestCertificateComponent implements OnInit {
     input.setSelectionRange(pos, pos);
   }
 
-  getAvailableKeys(currentExt: unknown) {
-    return this.allExtensionKeys.filter(
-      key => !this.extensions.some(ext => ext.key === key.value && ext !== currentExt)
-    );
-  }
-
   addExtension() {
-    if (this.extensions.length < this.allExtensionKeys.length) {
-      this.extensions.push({key: '', value: ''});
-      const content = document.querySelector('.content');
-      if (content) content.scrollTop = content.scrollHeight;
-    }
+    if (this.extensions.length < this.allExtensionKeys.length) this.extensions.push({ key: '', value: '' });
   }
 
   removeExtension(index: number) {
@@ -140,9 +126,9 @@ export class RequestCertificateComponent implements OnInit {
     else if (ext.key === 'nameConstraints')
       ext.value = [[], []];
     else if (ext.key === 'basicConstraints')
-      ext.value = {isCA: null, pathLen: null};
+      ext.value = { isCA: null, pathLen: null };
     else if (ext.key === 'certificatePolicies')
-      ext.value = {policyIdentifier: null, cpsUri: null, userNotice: null};
+      ext.value = { policyIdentifier: null, cpsUri: null, userNotice: null };
     else ext.value = '';
     return ext;
   }
@@ -153,7 +139,7 @@ export class RequestCertificateComponent implements OnInit {
     const nameInput = event.target as HTMLInputElement;
     const value = nameInput.value?.trim();
     if (!value) return;
-    extValue.push({prefix: prefixRef.value, value});
+    extValue.push({ prefix: prefixRef.value, value });
     nameInput.value = '';
   }
 
@@ -173,64 +159,13 @@ export class RequestCertificateComponent implements OnInit {
     ext.value.pathLen = input.value ? +input.value : null;
   }
 
-  public revalidateDates() {
-    if (this.dateNotAfterCSRModel && this.dateNotAfterCSRModel.control)
-      this.validateDateField(this.dateNotAfter, this.dateNotAfterCSRModel, 'notAfter');
-    if (this.dateNotBeforeModel && this.dateNotBeforeModel.control)
-      this.validateDateField(this.dateNotBefore, this.dateNotBeforeModel, 'notBefore');
-    if (this.dateNotAfterModel && this.dateNotAfterModel.control)
-      this.validateDateField(this.dateNotAfter, this.dateNotAfterModel, 'notAfter');
-  }
-
-  validateDateField(date: Date | null, control: NgModel, type: 'notBefore' | 'notAfter') {
-    if (!date) {
-      control.control.setErrors(null);
-      return;
-    }
-
-    const key = `invalid${type[0].toUpperCase() + type.slice(1)}`;
-
-    if (type === 'notBefore' && this.dateNotAfter && date >= this.dateNotAfter) {
-      this.toast.error('Invalid Date', 'Not Before must be before Not After');
-      control.control.setErrors({[key]: true});
-      return;
-    }
-
-    if (type === 'notAfter' && this.dateNotBefore && date <= this.dateNotBefore) {
-      this.toast.error('Invalid Date', 'Not After must be after Not Before');
-      control.control.setErrors({[key]: true});
-      return;
-    }
-
-    const caUser = this.signingOrganization as CaUser;
-    if (caUser === null) {
-      // this.toast.error('Invalid Date', 'You have to select CA issuer');
-      control.control.setErrors({[key]: true});
-      return;
-    }
-
-    const certDate = type === 'notBefore' ? caUser.minValidFrom : caUser.maxValidUntil;
-    const label: string = type === 'notBefore' ? 'Not Before' : 'Not After';
-    const direction: string = type === 'notBefore' ? 'after' : 'before';
-
-    if (certDate && ((type === 'notBefore' && date < new Date(certDate)) || (type === 'notAfter' && date > new Date(certDate)))) {
-      this.toast.error('Invalid Date', `${label} must be ${direction} issuer's available ${label}`);
-      control.control.setErrors({[key]: true});
-      return;
-    }
-
-    control.control.setErrors(null);
-  }
-
   generalNamesToString(list: { prefix: string, value: string }[]) {
     return list.map(item => `${item.prefix}:${item.value}`).join(',');
   }
 
   onSubmit(form: NgForm) {
-    if (!form.valid) return;
+    if (!form.valid || !this.signingOrganization) return;
     this.loading = true;
-
-    if (!this.signingOrganization) return;
 
     const dto: CertificateRequest = {
       signingOrganization: this.signingOrganization.id,
@@ -238,47 +173,25 @@ export class RequestCertificateComponent implements OnInit {
       organization: this.organization,
       organizationalUnit: this.organizationalUnit,
       email: this.email,
-      country: this.country
-    }
-
-    if (this.dateNotBefore)
-      dto.notBefore = this.dateNotBefore;
-    if (this.dateNotAfter)
-      dto.notAfter = this.dateNotAfter;
+      country: this.country,
+      notBefore: this.dateNotBefore || undefined,
+      notAfter: this.dateNotAfter || undefined
+    };
 
     this.extensions.forEach(extension => {
-      if (extension.key === 'keyUsage')
-        dto.keyUsage = extension.value.map((v: number) => KeyUsageValue[v]);
-      else if (extension.key === 'extendedKeyUsage')
-        dto.extendedKeyUsage = extension.value.map((v: number) => ExtendedKeyUsageValue[v]);
+      if (extension.key === 'keyUsage') dto.keyUsage = extension.value.map((v: number) => KeyUsageValue[v]);
+      else if (extension.key === 'extendedKeyUsage') dto.extendedKeyUsage = extension.value.map((v: number) => ExtendedKeyUsageValue[v]);
       else if (extension.key === 'subjectAlternativeNames' && this.generalNamesToString(extension.value))
-        dto.subjectAlternativeNames = {value: this.generalNamesToString(extension.value)};
+        dto.subjectAlternativeNames = { value: this.generalNamesToString(extension.value) };
       else if (extension.key === 'issuerAlternativeNames' && this.generalNamesToString(extension.value))
-        dto.issuerAlternativeNames = {value: this.generalNamesToString(extension.value)};
-      else if (extension.key === 'nameConstraints' && (this.generalNamesToString(extension.value[0]) || this.generalNamesToString(extension.value[1])))
-        dto.nameConstraints = {
-          permitted: {value: this.generalNamesToString(extension.value[0])},
-          excluded: {value: this.generalNamesToString(extension.value[1])}
-        };
-      else if (extension.key === 'basicConstraints')
-        dto.basicConstraints = {
-          isCa: extension.value.isCa ?? false,
-          pathLen: extension.value.pathLen
-        };
-      else if (extension.key === 'certificatePolicy')
-        dto.certificatePolicy = {
-          policyIdentifier: extension.value.policyIdentifier,
-          cpsUri: extension.value.cpsUri,
-          userNotice: extension.value.userNotice
-        };
-    })
+        dto.issuerAlternativeNames = { value: this.generalNamesToString(extension.value) };
+    });
 
     this.certificateRequestsService.createRequest(dto).subscribe({
       next: keys => {
         this.loading = false;
         this.toast.success("Success", "Certificate request successfully created");
         this.resetFields();
-
         this.dialog.open(KeysDialogComponent, {
           width: '100%',
           maxWidth: '800px',
@@ -293,11 +206,8 @@ export class RequestCertificateComponent implements OnInit {
   }
 
   onSubmitCSR(form: NgForm) {
-    if (!form.valid) return;
+    if (!form.valid || !this.csrFile || !this.signingOrganization) return;
     this.loading = true;
-
-    if (!this.csrFile) return;
-    if (!this.signingOrganization) return;
 
     this.certificateRequestsService.createRequestCSR(this.signingOrganization.id, this.csrFile, this.dateNotAfter).subscribe({
       next: () => {
@@ -317,10 +227,12 @@ export class RequestCertificateComponent implements OnInit {
     this.removeFile();
     this.csrForm.resetForm();
     this.requestForm.resetForm();
+    this.dateNotBefore = null;
+    this.dateNotAfter = null;
   }
 
   onFileChosen(event: Event) {
-    this.csrFile = (event.target as HTMLInputElement).files?.[0]
+    this.csrFile = (event.target as HTMLInputElement).files?.[0];
     if (this.csrFile) this.fileName = this.csrFile.name;
   }
 

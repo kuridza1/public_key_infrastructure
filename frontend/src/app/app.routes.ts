@@ -1,21 +1,19 @@
 import { Routes } from '@angular/router';
-// import {IssueCertificateComponent} from './components/common/issue-certificate/issue-certificate.component';
-// import {AllCertificatesComponent} from './components/admin/all-certificates/all-certificates.component';
-// import {CaUserManagementComponent} from './components/admin/ca-user-management/ca-user-management.component';
-// import {LoginComponent} from './components/anonymous/login/login.component';
-// import {RegistrationComponent} from './components/anonymous/registration/registration.component';
-// import {MyCertificatesComponent} from './components/common/my-certificates/my-certificates.component';
-// import {RequestCertificateComponent} from './components/ee-user/request-certificate/request-certificate.component';
+import { IssueCertificateComponent } from './components/helpers/issue-certificate/issue-certificate.component';
+import {AllCertificatesComponent} from './components/admin/all-certificates/all-certificates.component';
+import {CaUserManagementComponent} from './components/admin/ca-user-management/ca-user-management.component';
+import { MyCertificatesComponent } from './components/helpers/my-certificates/my-certificates.component';
+import {RequestCertificateComponent} from './components/ee-user/request-certificate/request-certificate.component';
 import { CertificateRequestsComponent } from './components/CA/certificate-requests/certificate-requests.component';
-// import {CrlPageComponent} from './components/common/crl-page/crl-page.component';
+import { CrlPageComponent } from './components/helpers/crl-page/crl-page.component';
 
 import {authGuard, noAuthGuard, roleGuard} from './services/auth/auth.guard';
 import { LoginComponent } from './components/user/login/login.component';
 import { RegistrationComponent } from './components/user/registration/registration.component';
 import { Role } from './models/Role';
 import { SignedCertificatesComponent } from './components/CA/signed-certificates/signed-certificates.component';
-// import {RoleRedirectComponent} from './components/common/role-redirect/role-redirect.component';
-// import {EmailConfirmationComponent} from './components/anonymous/email-confirmation/email-confirmation/email-confirmation.component';
+import { RoleRedirectComponent } from './components/helpers/role-redirect.component';
+import { EmailConfirmationComponent } from './components/user/email-confirmation/email-confirmation';
 
 export const routes: Routes = [
   // Public

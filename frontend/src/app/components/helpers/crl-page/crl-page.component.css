@@ -1,12 +1,9 @@
-@import "colors";
-@import "table";
-
 :host {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: $background;
+  background-color: var(--background);
 }
 
 .table-width {
@@ -15,7 +12,7 @@
 }
 
 .container {
-  background-color: $background2;
+  background-color: var(--background2);
   padding: 24px 24px 40px 24px;
   border-radius: 24px;
   margin: 90px 0 140px 0;
@@ -34,8 +31,7 @@
   padding: 0;
 }
 
-// custom width
-
+/* custom width */
 mat-header-cell.issuedBy,
 mat-cell.issuedBy {
   flex: 0 0 27%;

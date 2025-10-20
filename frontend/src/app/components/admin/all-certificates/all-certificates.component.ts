@@ -10,24 +10,18 @@ import {
 } from '@angular/material/table';
 import {MatIconButton} from '@angular/material/button';
 import {MatDialog, MatDialogRef} from '@angular/material/dialog';
-import {
-  RevokeCertificateDialogComponent
-} from '../../common/revoke-certificate-dialog/revoke-certificate-dialog.component';
-import {
-  CertificateDetailsDialogComponent
-} from '../../common/certificate-details-dialog/certificate-details-dialog.component';
-import {CertificatesService} from '../../../services/certificates/certificates.service';
+import { RevokeCertificateDialogComponent } from '../../helpers/revoke-certificate-dialog/revoke-certificate-dialog.component';
+import { CertificateDetailsDialogComponent } from '../../helpers/certificate-details-dialog/certificate-details-dialog.component';
+import { CertificatesService } from '../../../services/certificates/certificate.service';
 import {Certificate} from '../../../models/Certificate';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {DatePipe, NgIf} from '@angular/common';
-import {ToastrService} from '../../common/toastr/toastr.service';
-import {downloadFile} from '../../common/custom-components/blob/download-file';
-import {extractBlobError} from '../../common/custom-components/blob/extract-blob-error';
+import { ToastrService } from '../../helpers/toastr/toastr.service';
+import { downloadFile } from '../../helpers/download-file';
+import { extractBlobError } from '../../helpers/extract-blob-error';
 import {RevokeCertificate} from '../../../models/RevokeCertificate';
 import {CrlService} from '../../../services/crl/crl.service';
-import {
-  DownloadCertificatePwDialogComponent
-} from '../../common/download-certificate-pw-dialog/download-certificate-pw-dialog.component';
+import { DownloadCertificatePwDialogComponent } from '../../helpers/download-certificate-pw-dialog/download-certificate-pw-dialog.component';
 import {DownloadCertificateRequest} from '../../../models/DownloadCertificateRequest';
 
 @Component({

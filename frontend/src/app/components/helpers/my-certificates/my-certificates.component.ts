@@ -14,11 +14,11 @@ import {RevokeCertificateDialogComponent} from '../revoke-certificate-dialog/rev
 import {CertificateDetailsDialogComponent} from '../certificate-details-dialog/certificate-details-dialog.component';
 import {DatePipe, NgIf} from '@angular/common';
 import {Certificate} from '../../../models/Certificate';
-import {CertificatesService} from '../../../services/certificates/certificates.service';
-import {downloadFile} from '../custom-components/blob/download-file';
+import { CertificatesService } from '../../../services/certificates/certificate.service';
+import { downloadFile } from '../download-file';
 import {AuthService} from '../../../services/auth/auth.service';
 import {ToastrService} from '../toastr/toastr.service';
-import {extractBlobError} from '../custom-components/blob/extract-blob-error';
+import { extractBlobError } from '../extract-blob-error';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {RevokeCertificate} from '../../../models/RevokeCertificate';
 import {CrlService} from '../../../services/crl/crl.service';
