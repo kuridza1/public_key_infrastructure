@@ -6,26 +6,25 @@ import java.security.KeyPairGenerator;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Base64;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
-import rs.ac.uns.ftn.pki.certRequests.dtos.ApproveCertificateRequest;
-import rs.ac.uns.ftn.pki.certRequests.dtos.CertificateRequestResponse;
-import rs.ac.uns.ftn.pki.certRequests.dtos.CreateCertificateRequestDTO;
-import rs.ac.uns.ftn.pki.certRequests.dtos.KeyPairDto;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import rs.ac.uns.ftn.pki.certRequests.dtos.ApproveCertificateRequest;
+import rs.ac.uns.ftn.pki.certRequests.dtos.CertificateRequestResponse;
+import rs.ac.uns.ftn.pki.certRequests.dtos.CreateCertificateRequestDTO;
+import rs.ac.uns.ftn.pki.certRequests.dtos.KeyPairDto;
 import rs.ac.uns.ftn.pki.certRequests.model.CertificateRequest;
 import rs.ac.uns.ftn.pki.certRequests.utils.CertificateRequestBuilder;
 import rs.ac.uns.ftn.pki.certRequests.utils.CertificateRequestDecoder;
-import rs.ac.uns.ftn.pki.certificates.model.CertificateStatus;
-import rs.ac.uns.ftn.pki.certificates.service.CertificateService;
+import rs.ac.uns.ftn.pki.certRequests.utils.CertificateIssuerPort;
+
 import rs.ac.uns.ftn.pki.certificates.model.Certificate;
+import rs.ac.uns.ftn.pki.certificates.repository.CertificateRepository;
 import rs.ac.uns.ftn.pki.users.model.Role;
 import rs.ac.uns.ftn.pki.users.model.User;
 import rs.ac.uns.ftn.pki.users.repository.UserRepository;
@@ -36,19 +35,22 @@ public class CertificateRequestService {
 
     private final CertificateRequestRepository requestRepo;
     private final UserRepository userRepo;
-    private final CertificateService certificateService;
+    private final CertificateRepository certificateRepository;
+    private final CertificateIssuerPort certificateIssuer; // small port, not the big service
 
     public CertificateRequestService(CertificateRequestRepository requestRepo,
                                      UserRepository userRepo,
-                                     CertificateService certificateService) {
+                                     CertificateRepository certificateRepository,
+                                     CertificateIssuerPort certificateIssuer) {
         this.requestRepo = requestRepo;
         this.userRepo = userRepo;
-        this.certificateService = certificateService;
+        this.certificateRepository = certificateRepository;
+        this.certificateIssuer = certificateIssuer;
     }
 
     /**
-     * Generates a subject RSA keypair, builds CSR with requested extensions,
-     * validates issuer constraints, persists the request, and returns PEM keys.
+     * Generates RSA keypair, builds CSR with requested extensions,
+     * validates issuer constraints via repository, persists request, returns PEM keys.
      */
     public KeyPairDto createCertificateRequest(CreateCertificateRequestDTO dto, String userIdStr) {
         UUID userId = UUID.fromString(userIdStr);
@@ -57,44 +59,34 @@ public class CertificateRequestService {
         User eeUser = userRepo.findByIdAndRole(userId, Role.EeUser)
                 .orElseThrow(() -> new IllegalArgumentException("EE user not found!"));
 
-        // Generate RSA keypair (subject keys)
-        KeyPairGenerator kpGen;
-        try {
-            kpGen = KeyPairGenerator.getInstance("RSA");
-            kpGen.initialize(2048, new SecureRandom());
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to initialize RSA generator", e);
-        }
-        KeyPair subjectKeyPair = kpGen.generateKeyPair();
+        // Subject RSA keypair
+        KeyPair subjectKeyPair = generateRsaKeyPair(2048);
 
         // Issuer (CA) selected via dto.signingOrganization (CA user id)
         UUID issuerId = UUID.fromString(dto.getSigningOrganization());
         User issuer = userRepo.findWithMyCertificatesByIdAndRole(issuerId, Role.CaUser)
                 .orElseThrow(() -> new IllegalArgumentException("Requested issuer is not found!"));
 
-        // Verify issuer is able to sign (has at least one ACTIVE certificate)
-        boolean hasActive = issuer.getMyCertificates() != null &&
-                issuer.getMyCertificates().stream()
-                        .anyMatch(c -> certificateService.getStatus(c) == CertificateStatus.ACTIVE);
-
-        if (!hasActive) {
+        // Active signing certs for issuer (repo-side filter: time window, canSign, not revoked)
+        var now = LocalDateTime.now();
+        var activeCerts = certificateRepository.findActiveSigningByIssuer(issuer.getId(), now);
+        if (activeCerts == null || activeCerts.isEmpty()) {
             throw new IllegalStateException("Requested issuer is not able to sign certificates!");
         }
 
-        // Check requested validity against issuer's active cert validity range
-        LocalDateTime minValidFrom = issuer.getMyCertificates().stream()
-                .filter(c -> certificateService.getStatus(c, null) == CertificateStatus.ACTIVE)
+        // Validity window derived from all ACTIVE signing certs
+        LocalDateTime minValidFrom = activeCerts.stream()
                 .map(Certificate::getNotBefore)
                 .filter(Objects::nonNull)
-                .min(LocalDateTime::compareTo)
-                .orElse(null);
+                .min(Comparator.naturalOrder())
+                .orElse(null).toLocalDateTime();
 
-        LocalDateTime maxValidUntil = issuer.getMyCertificates().stream()
-                .filter(c -> certificateService.getStatus(c, null) == CertificateStatus.ACTIVE)
+
+        LocalDateTime maxValidUntil = activeCerts.stream()
                 .map(Certificate::getNotAfter)
                 .filter(Objects::nonNull)
-                .max(LocalDateTime::compareTo)
-                .orElse(null);
+                .max(Comparator.naturalOrder())
+                .orElse(null).toLocalDateTime();
 
         if (dto.getNotBefore() != null && minValidFrom != null && dto.getNotBefore().isBefore(minValidFrom)) {
             throw new IllegalArgumentException("NotBefore cannot be earlier than the issuer's earliest NotBefore!");
@@ -127,18 +119,17 @@ public class CertificateRequestService {
         User issuer = userRepo.findWithMyCertificatesByIdAndRole(issuerId, Role.CaUser)
                 .orElseThrow(() -> new IllegalArgumentException("Requested issuer is not found!"));
 
-        boolean hasActive = issuer.getMyCertificates() != null &&
-                issuer.getMyCertificates().stream()
-                        .anyMatch(c -> certificateService.getStatus(c) == CertificateStatus.ACTIVE);
+        var now = LocalDateTime.now();
+        var activeCerts = certificateRepository.findActiveSigningByIssuer(issuer.getId(), now);
+        if (activeCerts == null || activeCerts.isEmpty()) {
+            throw new IllegalStateException("Requested issuer is not able to sign certificates!");
+        }
 
-        if (!hasActive) throw new IllegalStateException("Requested issuer is not able to sign certificates!");
-
-        LocalDateTime maxValidUntil = issuer.getMyCertificates().stream()
-                .filter(c -> certificateService.getStatus(c, null) == CertificateStatus.ACTIVE)
+        LocalDateTime maxValidUntil = activeCerts.stream()
                 .map(Certificate::getNotAfter)
                 .filter(Objects::nonNull)
-                .max(LocalDateTime::compareTo)
-                .orElse(null);
+                .max(Comparator.naturalOrder())
+                .orElse(null).toLocalDateTime();
 
         if (notAfter != null && maxValidUntil != null && notAfter.isAfter(maxValidUntil)) {
             throw new IllegalArgumentException("NotAfter cannot be later than the issuer's latest NotAfter!");
@@ -159,7 +150,6 @@ public class CertificateRequestService {
     @Transactional(readOnly = true)
     public List<CertificateRequestResponse> getCertificateRequests(String userIdStr) {
         UUID caId = UUID.fromString(userIdStr);
-        // Ensure requester is CA
         userRepo.findByIdAndRole(caId, Role.CaUser)
                 .orElseThrow(() -> new IllegalArgumentException("CA user not found!"));
 
@@ -190,6 +180,7 @@ public class CertificateRequestService {
 
     /**
      * Issues a certificate from a stored CSR and removes the request.
+     * Uses the small CertificateIssuerPort instead of the big CertificateService.
      */
     public void approveCertificateRequest(String userIdStr, ApproveCertificateRequest approveRequest) {
         UUID caId = UUID.fromString(userIdStr);
@@ -210,11 +201,11 @@ public class CertificateRequestService {
             PublicKey publicKey = new JcaPKCS10CertificationRequest(new PKCS10CertificationRequest(csrBytes))
                     .getPublicKey();
 
-            certificateService.createCertificate(
+            // Delegate issuance via the tiny port (no dependency on CertificateService)
+            certificateIssuer.issue(
                     approveRequest.getRequestForm(),
-                    false,
                     userIdStr,
-                    req.getRequestedFor().getId().toString(),
+                    req.getRequestedFor().getId(),
                     publicKey
             );
 
@@ -226,6 +217,16 @@ public class CertificateRequestService {
     }
 
     // ----- helpers -----
+    private static KeyPair generateRsaKeyPair(int bits) {
+        try {
+            KeyPairGenerator kpGen = KeyPairGenerator.getInstance("RSA");
+            kpGen.initialize(bits, new SecureRandom());
+            return kpGen.generateKeyPair();
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to initialize RSA generator", e);
+        }
+    }
+
     private static String pemOf(Object keyOrCert) {
         try (StringWriter sw = new StringWriter();
              JcaPEMWriter pem = new JcaPEMWriter(sw)) {

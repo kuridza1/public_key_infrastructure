@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import rs.ac.uns.ftn.pki.certificates.model.Certificate;
 
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,6 +24,8 @@ public interface CertificateRepository extends JpaRepository<Certificate, BigInt
 
     // Find all certificates that can sign (CA certificates)
     List<Certificate> findByCanSignTrue();
+
+    Optional<Certificate> findBySerialNumber(BigInteger serialNumber);
 
     // Find all certificates that can sign and have a signing certificate (non-root CAs)
     @Query("SELECT c FROM Certificate c " +
@@ -56,4 +59,18 @@ public interface CertificateRepository extends JpaRepository<Certificate, BigInt
 
     // Find certificates by organization
     List<Certificate> findBySubjectOrganization(String organization);
+
+
+    @Query("""
+        select c from Certificate c
+        where c.signedBy.id = :issuerId
+          and c.notBefore <= :now
+          and c.notAfter  >= :now
+          and c.canSign = true
+          and not exists (
+             select 1 from RevokedCertificate r
+             where r.certificateSerialNumber = c.serialNumber
+          )
+        """)
+    List<Certificate> findActiveSigningByIssuer(UUID issuerId, LocalDateTime now);
 }

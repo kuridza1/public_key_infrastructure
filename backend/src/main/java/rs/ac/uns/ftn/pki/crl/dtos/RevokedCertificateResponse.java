@@ -1,5 +1,6 @@
 package rs.ac.uns.ftn.pki.crl.dtos;
 
+import rs.ac.uns.ftn.pki.certificates.dtos.CertificateResponse;
 import rs.ac.uns.ftn.pki.crl.model.RevocationReason;
 import rs.ac.uns.ftn.pki.crl.model.RevokedCertificate;
 

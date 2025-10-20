@@ -8,8 +8,8 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import rs.ac.uns.ftn.pki.certificates.CertificateRepository;
 import rs.ac.uns.ftn.pki.certificates.model.Certificate;
+import rs.ac.uns.ftn.pki.certificates.repository.CertificateRepository;
 import rs.ac.uns.ftn.pki.crl.dtos.RevokeCertificateRequest;
 import rs.ac.uns.ftn.pki.crl.dtos.RevokedCertificateResponse;
 import rs.ac.uns.ftn.pki.crl.model.RevocationReason;
@@ -57,8 +57,11 @@ public class CrlService {
 
     public void revokeCertificate(RevokeCertificateRequest req, UUID requesterId, Role requesterRole) {
         BigInteger serial = new BigInteger(req.getSerialNumber());
-        Certificate cert = certRepo.findBySerialNumber(serial)
-                .orElseThrow(() -> new IllegalArgumentException("Certificate not found!"));
+        Optional<Certificate> certOpt = certRepo.findBySerialNumber(serial);
+        if (certOpt.isEmpty()){
+            throw new IllegalArgumentException("Certificate not found!");
+        }
+        Certificate cert = certOpt.get();
 
         revokedRepo.findByCertificate_SerialNumber(serial)
                 .ifPresent(r -> { throw new IllegalStateException("Certificate already revoked!"); });
