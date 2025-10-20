@@ -1,4 +1,4 @@
-package rs.ac.uns.ftn.pki.crl;
+package rs.ac.uns.ftn.pki.crl.service;
 
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rs.ac.uns.ftn.pki.certificates.model.Certificate;
 import rs.ac.uns.ftn.pki.certificates.repository.CertificateRepository;
+import rs.ac.uns.ftn.pki.crl.repository.RevokedCertificateRepository;
 import rs.ac.uns.ftn.pki.crl.dtos.RevokeCertificateRequest;
 import rs.ac.uns.ftn.pki.crl.dtos.RevokedCertificateResponse;
 import rs.ac.uns.ftn.pki.crl.model.RevocationReason;

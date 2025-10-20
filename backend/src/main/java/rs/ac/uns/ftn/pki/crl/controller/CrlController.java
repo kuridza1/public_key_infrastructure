@@ -1,9 +1,10 @@
-package rs.ac.uns.ftn.pki.crl;
+package rs.ac.uns.ftn.pki.crl.controller;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import rs.ac.uns.ftn.pki.crl.service.CrlService;
 import rs.ac.uns.ftn.pki.crl.dtos.RevokeCertificateRequest;
 import rs.ac.uns.ftn.pki.crl.dtos.RevokedCertificateResponse;
 import rs.ac.uns.ftn.pki.users.model.Role;

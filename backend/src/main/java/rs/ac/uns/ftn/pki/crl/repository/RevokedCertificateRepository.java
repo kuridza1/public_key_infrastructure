@@ -1,4 +1,4 @@
-package rs.ac.uns.ftn.pki.crl;
+package rs.ac.uns.ftn.pki.crl.repository;
 
 import java.math.BigInteger;
 import java.util.Optional;

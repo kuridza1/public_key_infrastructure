@@ -1,4 +1,4 @@
-package rs.ac.uns.ftn.pki.crl;
+package rs.ac.uns.ftn.pki.crl.utils;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

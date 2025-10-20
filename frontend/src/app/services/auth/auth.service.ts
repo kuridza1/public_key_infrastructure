@@ -26,9 +26,9 @@ import {HttpErrorResponse} from '@angular/common/http';
 @Injectable({providedIn: 'root'})
 export class AuthService {
   httpClient = inject(HttpClient);
-  urlCore = 'http://localhost:8080/api/auth';
+  urlCore = 'https://localhost:8080/api/auth';
 
-  private static STORAGE_KEY = 'auth.state.v1';
+  private static STORAGE_KEY = 'auth.state';
 
   private readonly _state$ = new BehaviorSubject<AuthState>({
     accessToken: null,
