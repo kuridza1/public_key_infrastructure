@@ -47,7 +47,7 @@ import {DownloadCertificateRequest} from '../../../models/DownloadCertificateReq
     NgIf
   ],
   templateUrl: './my-certificates.component.html',
-  styleUrl: './my-certificates.component.scss'
+  styleUrl: './my-certificates.component.css'
 })
 export class MyCertificatesComponent implements OnInit {
   certificatesService = inject(CertificatesService);

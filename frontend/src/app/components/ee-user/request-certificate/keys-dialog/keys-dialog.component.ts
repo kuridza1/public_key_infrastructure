@@ -18,7 +18,7 @@ import { ToastrService } from '../../../helpers/toastr/toastr.service';
     MatInput
   ],
   templateUrl: './keys-dialog.component.html',
-  styleUrl: './keys-dialog.component.scss'
+  styleUrl: './keys-dialog.component.css'
 })
 export class KeysDialogComponent {
   dialogRef = inject(MatDialogRef<KeysDialogComponent, null>);
