@@ -1,0 +1,18 @@
+<div class="container">
+  <button (click)="onNoClick()" class="close-button" mat-icon-button tabindex="-1">
+    <span class="material-symbols-rounded">close</span>
+  </button>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Signing certificate</mat-label>
+    <mat-select [(ngModel)]="chosenCertificate" name="signingCertificate">
+      <mat-option *ngFor="let cert of data.availableCertificates" [value]="cert">
+        {{ cert.prettySerialNumber }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <button (click)="closeDialog()" [disabled]="!chosenCertificate" class="blue-button finish">
+    Assign
+  </button>
+</div>
