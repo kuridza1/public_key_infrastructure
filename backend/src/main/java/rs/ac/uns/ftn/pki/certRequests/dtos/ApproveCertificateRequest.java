@@ -1,6 +1,8 @@
 package rs.ac.uns.ftn.pki.certRequests.dtos;
 
 
+import rs.ac.uns.ftn.pki.certificates.dtos.IssueCertificateRequest;
+
 public class ApproveCertificateRequest {
 
     private String requestId;

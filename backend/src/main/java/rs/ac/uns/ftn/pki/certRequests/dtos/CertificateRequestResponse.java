@@ -1,5 +1,7 @@
 package rs.ac.uns.ftn.pki.certRequests.dtos;
 
+import rs.ac.uns.ftn.pki.certificates.model.extensionValues.*;
+
 import java.time.LocalDateTime;
 import java.util.Collection;
 
