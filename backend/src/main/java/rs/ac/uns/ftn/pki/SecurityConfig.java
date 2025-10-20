@@ -1,4 +1,4 @@
-package rs.ac.uns.ftn.pki.config;
+package rs.ac.uns.ftn.pki;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

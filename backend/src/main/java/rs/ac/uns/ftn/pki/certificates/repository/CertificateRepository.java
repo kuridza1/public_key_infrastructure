@@ -55,10 +55,10 @@ public interface CertificateRepository extends JpaRepository<Certificate, BigInt
     List<Certificate> findBySigningCertificateIsNull();
 
     // Find certificates by common name (partial match)
-    List<Certificate> findBySubjectCommonNameContainingIgnoreCase(String commonName);
+//    List<Certificate> findByCommonNameContainingIgnoreCase(String commonName);
 
     // Find certificates by organization
-    List<Certificate> findBySubjectOrganization(String organization);
+//    List<Certificate> findByOrganization(String organization);
 
 
     @Query("""
