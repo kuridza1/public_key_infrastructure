@@ -1,0 +1,39 @@
+/* Generic container */
+.container {
+  background-color: var(--background);
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  padding: 80px 60px 60px 60px;
+  color: var(--text);
+}
+
+/* Heading text */
+.large-text {
+  font-size: xx-large;
+  margin: 0 0 36px 0;
+}
+
+/* Material form fields */
+mat-form-field {
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+/* Finish button */
+.finish {
+  width: 9rem;
+  margin-top: 24px;
+}
+
+/* Loading section spacing */
+.min-height-loading {
+  min-height: 250px;
+}
+
+/* Hide Angular Material hint/error line */
+::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
+}

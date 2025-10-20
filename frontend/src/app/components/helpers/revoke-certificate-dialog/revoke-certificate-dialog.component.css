@@ -1,0 +1,23 @@
+.container {
+  background-color: var(--white);
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  padding: 80px 60px 60px 60px;
+  color: var(--black);
+}
+
+mat-form-field {
+  margin-bottom: 42px;
+  width: 100%;
+}
+
+.finish {
+  width: 9rem;
+}
+
+::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
+}

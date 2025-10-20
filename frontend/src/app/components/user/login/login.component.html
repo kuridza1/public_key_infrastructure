@@ -1,0 +1,27 @@
+<div class="container">
+  <form class="login-form" [formGroup]="form" (ngSubmit)="submit()">
+    <h2 class="large-text">Welcome Back</h2>
+
+    <mat-form-field appearance="outline" style="width:320px">
+      <mat-label>Email</mat-label>
+      <input matInput placeholder="Enter your email" formControlName="email" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" style="width:320px">
+      <mat-label>Password</mat-label>
+      <input matInput type="password" placeholder="Enter your password" formControlName="password" />
+    </mat-form-field>
+
+    <!-- Primary CTA: gradient -->
+    <button class="btn" type="submit" [disabled]="loading" style="width:320px">
+      {{ loading ? 'Logging in…' : 'Login' }}
+    </button>
+
+    <!-- Secondary action: outlined -->
+    <button class="btn-accent" type="button" (click)="goRegister()" style="width:320px; margin-top:12px">
+      Register
+    </button>
+
+    <a routerLink="/forgot-password" class="mt-2">Forgot password?</a>
+  </form>
+</div>
