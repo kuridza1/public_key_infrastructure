@@ -36,7 +36,7 @@ import {AddCertificateToCaUser} from '../../../models/AddCertificateToCaUser';
     MatHeaderCellDef
   ],
   templateUrl: './ca-user-management.component.html',
-  styleUrl: './ca-user-management.component.scss'
+  styleUrl: './ca-user-management.component.css'
 })
 export class CaUserManagementComponent implements OnInit {
   usersService = inject(UsersService);

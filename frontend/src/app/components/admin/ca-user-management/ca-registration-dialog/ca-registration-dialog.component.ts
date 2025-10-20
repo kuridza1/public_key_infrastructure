@@ -29,7 +29,7 @@ import {CaUser} from '../../../../models/CaUser';
     NgIf
   ],
   templateUrl: './ca-registration-dialog.component.html',
-  styleUrl: './ca-registration-dialog.component.scss'
+  styleUrl: './ca-registration-dialog.component.css'
 })
 export class CaRegistrationDialogComponent {
   dialogRef = inject(MatDialogRef<CaRegistrationDialogComponent, CaUser | null | undefined>);
