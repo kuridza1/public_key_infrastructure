@@ -22,7 +22,7 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
     FormsModule
   ],
   templateUrl: './ca-add-certificate-dialog.component.html',
-  styleUrl: './ca-add-certificate-dialog.component.scss'
+  styleUrl: './ca-add-certificate-dialog.component.css'
 })
 export class CaAddCertificateDialogComponent {
   dialogRef = inject(MatDialogRef<CaAddCertificateDialogComponent, Certificate | null>)

@@ -1,26 +1,27 @@
-@import "colors";
-@import "buttons";
-
+/* key-form or generic form container */
 .container {
-  background-color: $background;
+  background-color: var(--background);
   flex-direction: column;
   align-items: center;
   position: relative;
   overflow: hidden;
   display: flex;
   padding: 80px 60px 60px 60px;
-  color: $text;
+  color: var(--text);
 }
 
+/* Material form fields */
 mat-form-field {
   margin-bottom: 42px;
   width: 100%;
 }
 
+/* Finish button sizing */
 .finish {
   width: 9rem;
 }
 
+/* Hide Angular Material subscript (hint/error line) */
 ::ng-deep .mat-mdc-form-field-subscript-wrapper {
   display: none !important;
 }

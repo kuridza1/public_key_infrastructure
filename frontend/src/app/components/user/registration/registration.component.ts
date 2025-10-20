@@ -23,7 +23,6 @@ const passwordsMatch = (): ValidatorFn => {
     MatFormField,
     MatInput,
     MatLabel,
-    NgOptimizedImage,
     NgForOf,
     NgIf,
     FormsModule,

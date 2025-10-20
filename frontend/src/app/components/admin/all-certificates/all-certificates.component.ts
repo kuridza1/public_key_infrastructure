@@ -44,7 +44,7 @@ import {DownloadCertificateRequest} from '../../../models/DownloadCertificateReq
     DatePipe
   ],
   templateUrl: './all-certificates.component.html',
-  styleUrl: './all-certificates.component.scss'
+  styleUrl: './all-certificates.component.css'
 })
 export class AllCertificatesComponent implements OnInit {
   certificatesService = inject(CertificatesService);

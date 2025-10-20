@@ -1,32 +1,36 @@
-@import "colors";
-@import "table";
+/* certificates.component.css */
 
+/* Host layout */
 :host {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: $background;
+  background-color: var(--background);
 }
 
+/* Table width control */
 .table-width {
   min-width: max(1300px, 70vw);
   max-width: min(1400px, 70vw);
 }
 
+/* Outer container */
 .container {
-  background-color: $background2;
+  background-color: var(--gray-100); /* your $background2 equivalent */
   padding: 24px 24px 40px 24px;
   border-radius: 24px;
   margin: 72px 0 140px 0;
 }
 
+/* Fixed-width text truncation */
 .fp {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+/* Action buttons bar */
 .action-buttons {
   display: flex;
   gap: 10px;
@@ -34,7 +38,7 @@
   padding: 0;
 }
 
-// custom width
+/* === Custom column widths for Angular Material table === */
 
 mat-header-cell.issuedTo,
 mat-cell.issuedTo {
