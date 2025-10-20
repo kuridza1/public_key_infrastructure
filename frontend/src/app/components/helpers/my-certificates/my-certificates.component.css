@@ -4,7 +4,7 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: $background;
+  background-color: var(--white);
 }
 
 .table-width {
@@ -13,7 +13,7 @@
 }
 
 .container {
-  background-color: $background2;
+  background-color: var(--gray-100);
   padding: 24px 24px 40px 24px;
   border-radius: 24px;
   margin: 90px 0 140px 0;
@@ -32,8 +32,7 @@
   padding: 0;
 }
 
-// custom width
-
+/* Custom column widths */
 mat-header-cell.issuedTo,
 mat-cell.issuedTo {
   flex: 0 0 22%;

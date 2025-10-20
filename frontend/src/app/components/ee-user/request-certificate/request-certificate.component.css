@@ -1,0 +1,218 @@
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: var(--color-primary);
+}
+
+.certificate-container {
+  position: relative;
+  background-color: var(--white);
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 90px 0 140px 0;
+}
+
+::ng-deep .mat-mdc-tab {
+  height: 64px !important;
+  font-size: medium !important;
+  width: 50%;
+}
+
+.certificate-form {
+  display: flex;
+  flex-direction: column;
+  width: 700px;
+  gap: 20px;
+}
+
+.certificate-form .row {
+  display: flex;
+  gap: 20px;
+}
+
+.certificate-form .row mat-form-field {
+  flex: 1;
+}
+
+.certificate-form .row mat-form-field ::ng-deep .mat-mdc-input-element {
+  color: var(--color-primary-dark);
+}
+
+.certificate-form .row mat-form-field ::ng-deep .mat-mdc-floating-label {
+  color: var(--gray-400) !important;
+}
+
+.certificate-form .extensions-container {
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  height: auto;
+  gap: 20px;
+}
+
+.certificate-form .extension-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.certificate-form .extension-row button[mat-icon-button] {
+  margin-left: -8px;
+  transform: scale(1.1);
+  color: var(--color-primary-dark);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  top: 8px;
+}
+
+.certificate-form .extension-row > :first-child {
+  flex: 70;
+  min-width: 260px;
+}
+
+.certificate-form .extension-row > :not(:first-child):not(:last-child) {
+  flex: 100;
+}
+
+.certificate-form .extension-row > :last-child {
+  flex: 0 0 auto;
+}
+
+.certificate-form .extension-row .extension-value {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 16px;
+}
+
+.certificate-form .extension-row .extension-value-row {
+  display: flex;
+  max-width: 368px;
+  gap: 16px;
+}
+
+.certificate-form .extension-row .extension-value-row > :first-child {
+  flex: 64;
+}
+
+.certificate-form .extension-row .extension-value-row > :not(:first-child) {
+  flex: 100;
+}
+
+.certificate-form .extension-row .san-value {
+  display: flex;
+  flex-direction: column;
+  max-width: 368px;
+  margin-bottom: -4px;
+  gap: 4px;
+}
+
+.certificate-form .extension-row .san-value .input-row {
+  display: flex;
+  gap: 10px;
+}
+
+.certificate-form .extension-row .san-value .input-row > :first-child {
+  flex: 43;
+}
+
+.certificate-form .extension-row .san-value .input-row > :not(:first-child) {
+  flex: 100;
+}
+
+.certificate-form .extension-row .san-value mat-chip-row ::ng-deep .text-value {
+  display: block;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 332px;
+  text-align: start;
+  height: 19px;
+  color: var(--gray-500);
+}
+
+.actions {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 36px;
+  gap: 20px;
+}
+
+.tab-content {
+  padding: 64px 72px 72px 72px;
+}
+
+.large-btn {
+  width: 100%;
+  background-color: var(--color-primary);
+  color: var(--white);
+  border-radius: 10px;
+}
+
+.medium-btn {
+  font-size: 16px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  width: 50%;
+  margin-top: 0;
+  margin-bottom: 0;
+  background-color: var(--color-primary);
+  color: var(--white);
+}
+
+::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
+}
+
+.upload-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 140px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.upload-box {
+  border: 1px dashed var(--color-primary-dark);
+  border-image-width: 1;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  background: transparent;
+  color: var(--color-primary-dark);
+  width: 100%;
+  transition: box-shadow 0.2s ease;
+}
+
+.upload-box.dragging {
+  box-shadow: 0 0 10px rgba(140, 174, 104, 0.3); /* green-mid */
+}
+
+.larger-icon {
+  transform: scale(1.7);
+  margin-bottom: 12px;
+}
+
+.file-name {
+  color: var(--black);
+  font-size: 0.85rem;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--gray-500);
+}
+
+.selected-file {
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
+
+.hidden {
+  display: none;
+}

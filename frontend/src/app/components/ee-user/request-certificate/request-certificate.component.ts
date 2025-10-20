@@ -45,7 +45,7 @@ import {CertificateRequestsService} from '../../../services/certificates/certifi
     MatChipSet
   ],
   templateUrl: './request-certificate.component.html',
-  styleUrl: './request-certificate.component.scss'
+  styleUrl: './request-certificate.component.css'
 })
 export class RequestCertificateComponent implements OnInit {
   @ViewChild('notAfterCSRModel') dateNotAfterCSRModel!: NgModel;

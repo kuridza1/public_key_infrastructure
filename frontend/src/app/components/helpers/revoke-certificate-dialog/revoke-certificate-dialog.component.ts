@@ -18,7 +18,7 @@ import {FormsModule} from '@angular/forms';
     FormsModule
   ],
   templateUrl: './revoke-certificate-dialog.component.html',
-  styleUrl: './revoke-certificate-dialog.component.scss'
+  styleUrl: './revoke-certificate-dialog.component.css'
 })
 export class RevokeCertificateDialogComponent {
   dialogRef = inject(MatDialogRef<RevokeCertificateDialogComponent, RevocationReason | undefined | null>)
