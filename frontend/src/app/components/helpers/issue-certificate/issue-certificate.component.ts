@@ -35,7 +35,7 @@ import {MatProgressSpinner} from '@angular/material/progress-spinner';
     MatProgressSpinner
   ],
   templateUrl: './issue-certificate.component.html',
-  styleUrl: './issue-certificate.component.scss'
+  styleUrl: './issue-certificate.component.css'
 })
 export class IssueCertificateComponent implements OnInit {
   @ViewChild('notBeforeModel') dateNotBeforeModel!: NgModel;
