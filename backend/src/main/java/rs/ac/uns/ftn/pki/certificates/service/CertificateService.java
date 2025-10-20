@@ -73,9 +73,9 @@ public class CertificateService {
         if (status != null && status != CertificateStatus.ACTIVE)
             throw new RuntimeException("Selected certificate is " + status.toString().toLowerCase() + "!");
 
-        if (signingCertificate != null && createCertificateRequest.notBefore().isBefore(signingCertificate.getNotBefore()))
+        if (signingCertificate != null && createCertificateRequest.notBefore().isBefore(signingCertificate.getNotBefore().toLocalDateTime()))
             throw new RuntimeException("NotBefore cannot be earlier than the signing certificate's NotBefore!");
-        if (signingCertificate != null && createCertificateRequest.notAfter().isAfter(signingCertificate.getNotAfter()))
+        if (signingCertificate != null && createCertificateRequest.notAfter().isAfter(signingCertificate.getNotAfter().toLocalDateTime()))
             throw new RuntimeException("NotAfter cannot be later than the signing certificate's NotAfter!");
         if (createCertificateRequest.notBefore().isAfter(createCertificateRequest.notAfter()))
             throw new RuntimeException("NotBefore cannot be later than the NotAfter!");
@@ -248,18 +248,17 @@ public class CertificateService {
         if (isRevoked(certificate))
             return CertificateStatus.REVOKED;
 
-        // Fixed: Convert OffsetDateTime to LocalDateTime for comparison
         var now = LocalDateTime.now();
         var notAfter = certificate.getNotAfter();
         var notBefore = certificate.getNotBefore();
 
-        if (now.isAfter(notAfter)) {
+        if (now.isAfter(notAfter.toLocalDateTime())) {
             var parentStatus = certificate.getSigningCertificate() == null ?
                     CertificateStatus.EXPIRED : getStatus(certificate.getSigningCertificate(),
                     original != null ? original : certificate, depth + 1);
             return parentStatus == CertificateStatus.ACTIVE ? CertificateStatus.EXPIRED : parentStatus;
         }
-        if (now.isBefore(notBefore)) {
+        if (now.isBefore(notBefore.toLocalDateTime())) {
             var parentStatus = certificate.getSigningCertificate() == null ?
                     CertificateStatus.DORMANT : getStatus(certificate.getSigningCertificate(),
                     original != null ? original : certificate, depth + 1);
