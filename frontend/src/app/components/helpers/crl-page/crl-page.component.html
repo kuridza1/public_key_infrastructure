@@ -1,0 +1,74 @@
+<div *ngIf="loading" class="loading">
+  <mat-spinner></mat-spinner>
+</div>
+<div *ngIf="!loading" class="container">
+  <div class="table-header table-width">
+    <mat-table [dataSource]="revokedCertificatesDataSource">
+
+      <ng-container matColumnDef="issuedTo">
+        <mat-header-cell class="issuedTo" *matHeaderCellDef>Issued to (DN)</mat-header-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="issuedBy">
+        <mat-header-cell class="issuedBy" *matHeaderCellDef>Issued by (DN)</mat-header-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="revocationReason">
+        <mat-header-cell class="revocationReason" *matHeaderCellDef>Reason for revocation</mat-header-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="serialNumber">
+        <mat-header-cell class="serialNumber" *matHeaderCellDef>Serial Number</mat-header-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <mat-header-cell class="actions" *matHeaderCellDef></mat-header-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    </mat-table>
+  </div>
+
+  <div class="table-width">
+    <mat-table [dataSource]="revokedCertificatesDataSource">
+      <ng-container matColumnDef="issuedTo">
+        <mat-cell class="issuedTo" *matCellDef="let certificate">
+          {{ certificate.issuedTo }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="issuedBy">
+        <mat-cell class="issuedBy" *matCellDef="let certificate">
+          {{ certificate.issuedBy }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="revocationReason">
+        <mat-cell class="revocationReason" *matCellDef="let certificate">
+          <span *ngIf="certificate.revocationReason === 'Unspecified'">Unspecified</span>
+          <span *ngIf="certificate.revocationReason === 'Superseded'">Superseded</span>
+          <span *ngIf="certificate.revocationReason === 'PrivilegeWithdrawn'">Privilege withdrawn</span>
+          <span *ngIf="certificate.revocationReason === 'KeyCompromise'">Key compromise</span>
+          <span *ngIf="certificate.revocationReason === 'CessationOfOperation'">Cessation of operation</span>
+          <span *ngIf="certificate.revocationReason === 'AffiliationChanged'">Affiliation changed</span>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="serialNumber">
+        <mat-cell class="serialNumber" *matCellDef="let certificate">
+          <p class="fp">{{ certificate.prettySerialNumber }}</p>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <mat-cell class="actions" *matCellDef="let certificate">
+          <button (click)="openCertificateDetails(certificate)" mat-icon-button>
+            <span class="material-symbols-rounded">quick_reference_all</span>
+          </button>
+        </mat-cell>
+      </ng-container>
+
+      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+    </mat-table>
+  </div>
+</div>
