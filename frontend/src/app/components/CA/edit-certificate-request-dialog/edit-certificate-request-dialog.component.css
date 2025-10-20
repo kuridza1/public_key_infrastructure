@@ -1,0 +1,180 @@
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #1e1e1e; /* replace $background */
+  padding: 80px 54px;
+}
+
+.certificate-container {
+  padding: 6px 18px;
+  border-radius: 20px;
+  max-height: 72vh;
+  overflow-y: auto;
+  width: 700px;
+}
+
+.certificate-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.certificate-container::-webkit-scrollbar-thumb {
+  background: #555; /* replace $edge2 */
+  border-radius: 6px;
+}
+
+.certificate-container::-webkit-scrollbar-thumb:hover {
+  background: #777; /* replace $edge3 */
+}
+
+.certificate-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@-moz-document url-prefix() {
+  .certificate-container {
+    scrollbar-width: thin;
+    scrollbar-color: #555 transparent; /* replace $edge2 */
+  }
+}
+
+.certificate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.certificate-form .row {
+  display: flex;
+  gap: 20px;
+}
+
+.certificate-form .row mat-form-field {
+  flex: 1;
+}
+
+.certificate-form .row mat-form-field ::ng-deep .mat-mdc-input-element {
+  color: #fff; /* replace $text */
+}
+
+.certificate-form .row mat-form-field ::ng-deep .mat-mdc-floating-label {
+  color: #ddd !important; /* replace $whitish */
+}
+
+.certificate-form .extensions-container {
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  height: auto;
+  gap: 20px;
+}
+
+.certificate-form .extension-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.certificate-form .extension-row button[mat-icon-button] {
+  margin-left: -8px;
+  transform: scale(1.1);
+  color: #ddd; /* replace $whitish */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  top: 8px;
+}
+
+.certificate-form .extension-row > :first-child {
+  flex: 70;
+  min-width: 260px;
+}
+
+.certificate-form .extension-row > :not(:first-child):not(:last-child) {
+  flex: 100;
+}
+
+.certificate-form .extension-row > :last-child {
+  flex: 0 0 auto;
+}
+
+.certificate-form .extension-row .extension-value {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 16px;
+}
+
+.certificate-form .extension-row .extension-value-row {
+  display: flex;
+  max-width: 368px;
+  gap: 16px;
+}
+
+.certificate-form .extension-row .extension-value-row > :first-child {
+  flex: 64;
+}
+
+.certificate-form .extension-row .extension-value-row > :not(:first-child) {
+  flex: 100;
+}
+
+.certificate-form .extension-row .san-value {
+  display: flex;
+  flex-direction: column;
+  max-width: 368px;
+  margin-bottom: -4px;
+  gap: 4px;
+}
+
+.certificate-form .extension-row .san-value .input-row {
+  display: flex;
+  gap: 10px;
+}
+
+.certificate-form .extension-row .san-value .input-row > :first-child {
+  flex: 43;
+}
+
+.certificate-form .extension-row .san-value .input-row > :not(:first-child) {
+  flex: 100;
+}
+
+.certificate-form .extension-row .san-value mat-chip-row ::ng-deep .text-value {
+  display: block;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 332px;
+  text-align: start;
+  height: 19px;
+  color: #aaa; /* replace $pale-text */
+}
+
+.actions {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 36px;
+  gap: 20px;
+}
+
+.large-btn {
+  width: 100%;
+}
+
+::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
+}
+
+.remove-icon {
+  color: #777 !important; /* replace $edge3 */
+}
+
+.no-signing-certificates {
+  color: #fff; /* replace $text */
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: x-large;
+}

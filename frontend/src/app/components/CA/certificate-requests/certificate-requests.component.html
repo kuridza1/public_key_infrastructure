@@ -1,0 +1,65 @@
+<div class="container">
+  <div class="table-header table-width">
+    <mat-table>
+      <ng-container matColumnDef="subject">
+        <mat-header-cell class="subject" *matHeaderCellDef>Subject (CN)</mat-header-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="organization">
+        <mat-header-cell class="organization" *matHeaderCellDef>Organization</mat-header-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="organizationalUnit">
+        <mat-header-cell class="organizationalUnit" *matHeaderCellDef>Organization unit</mat-header-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="submittedOn">
+        <mat-header-cell class="submittedOn" *matHeaderCellDef>Submitted on</mat-header-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <mat-header-cell class="actions" *matHeaderCellDef></mat-header-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    </mat-table>
+  </div>
+
+  <div class="table-width">
+    <mat-table [dataSource]="certificateRequests">
+      <ng-container matColumnDef="subject">
+        <mat-cell class="subject" *matCellDef="let certificate">
+          {{ certificate.commonName }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="organization">
+        <mat-cell class="organization" *matCellDef="let certificate">
+          {{ certificate.organization }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="organizationalUnit">
+        <mat-cell class="organizationalUnit" *matCellDef="let certificate">
+          {{ certificate.organizationalUnit }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="submittedOn">
+        <mat-cell class="submittedOn" *matCellDef="let certificate">
+          {{ certificate.submittedOn | date:'HH:mm:ss dd.MM.yyyy.' }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <mat-cell class="actions" *matCellDef="let certificate">
+          <button (click)="openEditCertificate(certificate)" mat-icon-button>
+            <span class="material-symbols-rounded">quick_reference_all</span>
+          </button>
+        </mat-cell>
+      </ng-container>
+
+      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+    </mat-table>
+  </div>
+</div>
