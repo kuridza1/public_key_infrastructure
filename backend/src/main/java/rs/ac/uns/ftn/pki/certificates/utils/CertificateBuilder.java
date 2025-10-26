@@ -130,7 +130,7 @@ public class CertificateBuilder {
             }
 
             // CRL distribution point
-            String crlUrl = "https://localhost:8081/api/v1/crl";
+            String crlUrl = "https://localhost:8081/api/crl";
             DistributionPointName distPointName = new DistributionPointName(
                     new GeneralNames(new GeneralName(GeneralName.uniformResourceIdentifier, crlUrl)));
             DistributionPoint distPoint = new DistributionPoint(distPointName, null, null);

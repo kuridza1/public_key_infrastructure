@@ -9,7 +9,6 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @Entity
 @Table(name = "app_user", uniqueConstraints = {
         @UniqueConstraint(name = "uk_app_user_email", columnNames = "email")
@@ -40,12 +39,14 @@ public class User extends BaseEntity {
     @NotBlank
     private String hashedPassword;
 
-    @NotBlank
+    // 🔹 CHANGED: allow null until login or token refresh
+    @Column(length = 2048)
     private String refreshToken;
 
     private OffsetDateTime refreshTokenExpiresAt;
 
-    @NotEmpty
+    // 🔹 CHANGED: allow empty list (no certs yet)
+    @NotNull
     @OneToMany(mappedBy = "signedBy", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Certificate> myCertificates = new ArrayList<>();
 
@@ -54,7 +55,6 @@ public class User extends BaseEntity {
     public Role getRole() {
         return role;
     }
-
     public void setRole(Role role) {
         this.role = role;
     }
@@ -62,7 +62,6 @@ public class User extends BaseEntity {
     public String getName() {
         return name;
     }
-
     public void setName(String name) {
         this.name = name;
     }
@@ -70,7 +69,6 @@ public class User extends BaseEntity {
     public String getSurname() {
         return surname;
     }
-
     public void setSurname(String surname) {
         this.surname = surname;
     }
@@ -78,7 +76,6 @@ public class User extends BaseEntity {
     public String getOrganization() {
         return organization;
     }
-
     public void setOrganization(String organization) {
         this.organization = organization;
     }
@@ -86,7 +83,6 @@ public class User extends BaseEntity {
     public String getEmail() {
         return email;
     }
-
     public void setEmail(String email) {
         this.email = email;
     }
@@ -94,7 +90,6 @@ public class User extends BaseEntity {
     public Boolean getEmailConfirmed() {
         return emailConfirmed;
     }
-
     public void setEmailConfirmed(Boolean emailConfirmed) {
         this.emailConfirmed = emailConfirmed;
     }
@@ -102,7 +97,6 @@ public class User extends BaseEntity {
     public String getHashedPassword() {
         return hashedPassword;
     }
-
     public void setHashedPassword(String hashedPassword) {
         this.hashedPassword = hashedPassword;
     }
@@ -110,7 +104,6 @@ public class User extends BaseEntity {
     public String getRefreshToken() {
         return refreshToken;
     }
-
     public void setRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
     }
@@ -118,7 +111,6 @@ public class User extends BaseEntity {
     public OffsetDateTime getRefreshTokenExpiresAt() {
         return refreshTokenExpiresAt;
     }
-
     public void setRefreshTokenExpiresAt(OffsetDateTime refreshTokenExpiresAt) {
         this.refreshTokenExpiresAt = refreshTokenExpiresAt;
     }
@@ -126,7 +118,6 @@ public class User extends BaseEntity {
     public List<Certificate> getMyCertificates() {
         return myCertificates;
     }
-
     public void setMyCertificates(List<Certificate> myCertificates) {
         this.myCertificates = myCertificates;
     }

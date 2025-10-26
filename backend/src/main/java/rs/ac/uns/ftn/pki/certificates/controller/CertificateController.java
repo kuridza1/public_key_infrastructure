@@ -1,6 +1,7 @@
 package rs.ac.uns.ftn.pki.certificates.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.pki.certificates.dtos.*;
 import rs.ac.uns.ftn.pki.certificates.service.CertificateService;
@@ -40,6 +41,7 @@ public class CertificateController {
     }
 
     @GetMapping("/get-all-valid-signing")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getAllValidSigningCertificates() {
         try {
             return ResponseEntity.ok(certificateService.getAllValidSigningCertificates());

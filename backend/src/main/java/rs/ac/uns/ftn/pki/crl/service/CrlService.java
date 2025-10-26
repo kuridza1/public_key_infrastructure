@@ -25,7 +25,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
-
 @Service
 @Transactional
 public class CrlService {
@@ -58,33 +57,44 @@ public class CrlService {
 
     public void revokeCertificate(RevokeCertificateRequest req, UUID requesterId, Role requesterRole) {
         BigInteger serial = new BigInteger(req.getSerialNumber());
-        Optional<Certificate> certOpt = certRepo.findBySerialNumber(serial);
-        if (certOpt.isEmpty()){
-            throw new IllegalArgumentException("Certificate not found!");
+
+        var cert = certRepo.findBySerialNumber(serial)
+                .orElseThrow(() -> new IllegalArgumentException("Certificate not found!"));
+
+        // prevent double revoke
+        if (revokedRepo.existsByCertificateSerialNumber(serial)) {
+            throw new IllegalStateException("Certificate already revoked!");
         }
-        Certificate cert = certOpt.get();
 
-        revokedRepo.findByCertificate_SerialNumber(serial)
-                .ifPresent(r -> { throw new IllegalStateException("Certificate already revoked!"); });
-
+        // authorization checks
         switch (requesterRole) {
             case CaUser -> {
-                if (cert.getSignedBy() == null ||
-                        !cert.getSignedBy().getId().equals(requesterId))
+                if (cert.getSignedBy() == null || !cert.getSignedBy().getId().equals(requesterId)) {
                     throw new IllegalStateException("A CA user can only revoke certificates signed by them!");
+                }
             }
             case EeUser -> {
                 var user = userRepo.findWithMyCertificatesById(requesterId)
                         .orElseThrow(() -> new IllegalArgumentException("Requester user not found!"));
-                if (!user.getMyCertificates().contains(cert))
+                if (!user.getMyCertificates().contains(cert)) {
                     throw new IllegalStateException("An EE user can only revoke certificates requested by them!");
+                }
             }
-            default -> {}
+            case Admin -> {
+                // Admin can revoke any certificate; no extra checks
+            }
+            default -> {
+                // if you want to forbid anonymous/unknown roles explicitly:
+                // throw new IllegalStateException("Unauthorized role");
+            }
         }
 
+        // ✅ Set both the relation and the serialNumber column
         RevokedCertificate entity = new RevokedCertificate();
         entity.setCertificate(cert);
         entity.setRevocationReason(req.getRevocationReason());
+        entity.setCertificateSerialNumber(cert.getSerialNumber());
+
         revokedRepo.save(entity);
     }
 
@@ -96,8 +106,9 @@ public class CrlService {
         X509v2CRLBuilder builder = new X509v2CRLBuilder(issuer, Date.from(now));
         builder.setNextUpdate(Date.from(now.plus(7, ChronoUnit.DAYS)));
 
+        // You can avoid fetching the full Certificate by using the stored serial directly:
         revokedRepo.findAll().forEach(rc -> {
-            BigInteger sn = rc.getCertificate().getSerialNumber();
+            BigInteger sn = rc.getCertificateSerialNumber(); // ⬅️ use the stored serial
             int reason = mapReason(rc.getRevocationReason());
             builder.addCRLEntry(sn, Date.from(now), reason);
         });

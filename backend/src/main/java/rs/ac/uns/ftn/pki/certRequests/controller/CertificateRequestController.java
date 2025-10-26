@@ -11,7 +11,9 @@ import rs.ac.uns.ftn.pki.certRequests.service.CertificateRequestService;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @RestController
@@ -30,7 +32,7 @@ public class CertificateRequestController {
     @PostMapping("/form")
     @PreAuthorize("hasRole('EeUser')")
     public ResponseEntity<?> createFromForm(@RequestBody CreateCertificateRequestDTO request,
-                                            @RequestHeader("X-User-Id") String userId) {
+                                            @RequestHeader("userId") String userId) {
         try {
             KeyPairDto keyPair = certificateRequestService.createCertificateRequest(request, userId);
             return ResponseEntity.ok(keyPair);
@@ -48,7 +50,7 @@ public class CertificateRequestController {
             @RequestParam("csrFile") MultipartFile csrFile,
             @RequestParam("signingOrganization") String signingOrganization,
             @RequestParam(value = "notAfter", required = false) String notAfterStr,
-            @RequestHeader("X-User-Id") String userId
+            @RequestHeader("userId") String userId
     ) {
         try {
             if (csrFile == null || csrFile.isEmpty() || signingOrganization == null || signingOrganization.isBlank())
@@ -66,7 +68,8 @@ public class CertificateRequestController {
             String csrContent = contentBuilder.toString();
             LocalDateTime notAfter = null;
             if (notAfterStr != null && !notAfterStr.isBlank()) {
-                notAfter = LocalDateTime.parse(notAfterStr);
+                Instant instant = Instant.parse(notAfterStr);
+                notAfter = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
             }
 
             certificateRequestService.createCertificateRequest(signingOrganization, csrContent, notAfter, userId);
@@ -81,7 +84,7 @@ public class CertificateRequestController {
     // ---------------------------------------------------------
     @GetMapping
     @PreAuthorize("hasRole('CaUser')")
-    public ResponseEntity<?> getRequests(@RequestHeader("X-User-Id") String userId) {
+    public ResponseEntity<?> getRequests(@RequestHeader("userId") String userId) {
         try {
             List<CertificateRequestResponse> requests = certificateRequestService.getCertificateRequests(userId);
             return ResponseEntity.ok(requests);
@@ -96,7 +99,7 @@ public class CertificateRequestController {
     @PostMapping("/reject")
     @PreAuthorize("hasRole('CaUser')")
     public ResponseEntity<?> rejectRequest(@RequestBody String requestId,
-                                           @RequestHeader("X-User-Id") String userId) {
+                                           @RequestHeader("userId") String userId) {
         try {
             certificateRequestService.deleteCertificateRequest(userId, requestId);
             return ResponseEntity.ok().build();
@@ -111,7 +114,7 @@ public class CertificateRequestController {
     @PostMapping("/approve")
     @PreAuthorize("hasRole('CaUser')")
     public ResponseEntity<?> approveRequest(@RequestBody ApproveCertificateRequest approveRequest,
-                                            @RequestHeader("X-User-Id") String userId) {
+                                            @RequestHeader("userId") String userId) {
         try {
             certificateRequestService.approveCertificateRequest(userId, approveRequest);
             return ResponseEntity.ok().build();

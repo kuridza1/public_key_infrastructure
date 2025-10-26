@@ -5,6 +5,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.*;
 
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
@@ -69,7 +70,7 @@ public class CertificateRequestService {
                 .orElseThrow(() -> new IllegalArgumentException("Requested issuer is not found!"));
 
         // Active signing certs for issuer (repo-side filter: time window, canSign, not revoked)
-        var now = LocalDateTime.now();
+        var now = OffsetDateTime.now();
         var activeCerts = certificateRepository.findActiveSigningByIssuer(issuer.getId(), now);
         if (activeCerts == null || activeCerts.isEmpty()) {
             throw new IllegalStateException("Requested issuer is not able to sign certificates!");
@@ -120,7 +121,7 @@ public class CertificateRequestService {
         User issuer = userRepo.findWithMyCertificatesByIdAndRole(issuerId, Role.CaUser)
                 .orElseThrow(() -> new IllegalArgumentException("Requested issuer is not found!"));
 
-        var now = LocalDateTime.now();
+        var now = OffsetDateTime.now();
         var activeCerts = certificateRepository.findActiveSigningByIssuer(issuer.getId(), now);
         if (activeCerts == null || activeCerts.isEmpty()) {
             throw new IllegalStateException("Requested issuer is not able to sign certificates!");

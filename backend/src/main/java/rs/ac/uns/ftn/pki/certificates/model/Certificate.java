@@ -51,7 +51,6 @@ public class Certificate extends BaseEntity {
     @Column(nullable = false)
     private Boolean canSign;
 
-    @Min(0)
     @Column(nullable = false)
     private int pathLen;
 

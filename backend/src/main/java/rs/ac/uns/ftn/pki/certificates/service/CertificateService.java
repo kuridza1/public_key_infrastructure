@@ -21,19 +21,16 @@ import rs.ac.uns.ftn.pki.users.model.Role;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
-import java.security.KeyFactory;
 import java.security.KeyStore;
-import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@Transactional(readOnly = true) // default: keep read ops inside a session (LOB-safe)
 public class CertificateService {
 
     private final IUnifiedDbContext db;
@@ -42,6 +39,7 @@ public class CertificateService {
         this.db = db;
     }
 
+    @Transactional // write
     public void createCertificate(IssueCertificateRequest createCertificateRequest, boolean isAdmin,
                                   String userId, String requestingUserId,
                                   AsymmetricKeyParameter subjectPublicKey,
@@ -66,8 +64,12 @@ public class CertificateService {
         Certificate signingCertificate;
         if (!"SelfSign".equals(createCertificateRequest.signingCertificate())) {
             var signingSerialNumber = new BigInteger(createCertificateRequest.signingCertificate());
-            signingCertificate = db.getCertificatesRepository().findById(signingSerialNumber)
+
+            // FIX: query by serialNumber (NOT findById)
+            signingCertificate = db.getCertificatesRepository()
+                    .findBySerialNumber(signingSerialNumber)
                     .orElse(null);
+
             if (signingCertificate == null)
                 throw new RuntimeException("Signing certificate not found!");
         } else {
@@ -83,22 +85,23 @@ public class CertificateService {
         if (status != null && status != CertificateStatus.ACTIVE)
             throw new RuntimeException("Selected certificate is " + status.toString().toLowerCase() + "!");
 
-        if (signingCertificate != null && createCertificateRequest.notBefore().isBefore(signingCertificate.getNotBefore().toLocalDateTime()))
+        if (signingCertificate != null && createCertificateRequest.notBefore()
+                .isBefore(signingCertificate.getNotBefore().toLocalDateTime()))
             throw new RuntimeException("NotBefore cannot be earlier than the signing certificate's NotBefore!");
-        if (signingCertificate != null && createCertificateRequest.notAfter().isAfter(signingCertificate.getNotAfter().toLocalDateTime()))
+        if (signingCertificate != null && createCertificateRequest.notAfter()
+                .isAfter(signingCertificate.getNotAfter().toLocalDateTime()))
             throw new RuntimeException("NotAfter cannot be later than the signing certificate's NotAfter!");
         if (createCertificateRequest.notBefore().isAfter(createCertificateRequest.notAfter()))
             throw new RuntimeException("NotBefore cannot be later than the NotAfter!");
 
-        // Fixed: Check if user has the signing certificate in their collection
         if (!isAdmin && signingCertificate != null &&
-                user.getMyCertificates().stream().noneMatch(c -> c.getSerialNumber().equals(signingCertificate.getSerialNumber())))
+                user.getMyCertificates().stream()
+                        .noneMatch(c -> c.getSerialNumber().equals(signingCertificate.getSerialNumber())))
             throw new RuntimeException("You don't have control over selected signing certificate!");
 
         Certificate certificate = CertificateBuilder.createCertificate(
                 createCertificateRequest, subjectPublicKey, subjectPrivateKey, signingCertificate, user);
 
-        // Fixed: Use proper enum values and method names
         if (requestingUser.getRole() == Role.EeUser ||
                 (requestingUser.getRole() == Role.CaUser && certificate.getCanSign())) {
             requestingUser.getMyCertificates().add(certificate);
@@ -109,20 +112,18 @@ public class CertificateService {
     }
 
     public List<CertificateResponse> getAllCertificates() {
-        var allCertificatesModels = db.getCertificatesRepository().findAll();
-
-        return allCertificatesModels.stream()
+        var all = db.getCertificatesRepository().findAll();
+        return all.stream()
                 .map(c -> CertificateResponse.createDto(c, getStatus(c).toString()))
                 .collect(Collectors.toList());
     }
 
     public List<CertificateResponse> getAllValidSigningCertificates() {
-        var allSigningCertificates = db.getCertificatesRepository().findByCanSignTrue();
-        var allValidCertificates = allSigningCertificates.stream()
+        var allSigning = db.getCertificatesRepository().findByCanSignTrue();
+        var valid = allSigning.stream()
                 .filter(c -> getStatus(c) == CertificateStatus.ACTIVE)
                 .collect(Collectors.toList());
-
-        return allValidCertificates.stream()
+        return valid.stream()
                 .map(c -> CertificateResponse.createDto(c, getStatus(c).toString()))
                 .collect(Collectors.toList());
     }
@@ -131,16 +132,16 @@ public class CertificateService {
         var user = db.getUserRepository().findByIdWithCertificates(UUID.fromString(caUserId))
                 .orElseThrow(() -> new RuntimeException("User not found!"));
 
-        var allSigningCertificates = db.getCertificatesRepository().findByCanSignWithSigningCertificate();
-        var allSigningAndNotByUser = allSigningCertificates.stream()
+        var allSigning = db.getCertificatesRepository().findByCanSignWithSigningCertificate();
+        var notOwned = allSigning.stream()
                 .filter(c -> !user.getMyCertificates().contains(c))
                 .collect(Collectors.toList());
 
-        var allValidCertificates = allSigningAndNotByUser.stream()
+        var valid = notOwned.stream()
                 .filter(c -> getStatus(c) == CertificateStatus.ACTIVE)
                 .collect(Collectors.toList());
 
-        return allValidCertificates.stream()
+        return valid.stream()
                 .map(c -> CertificateResponse.createDto(c, getStatus(c).toString()))
                 .collect(Collectors.toList());
     }
@@ -148,10 +149,7 @@ public class CertificateService {
     public List<CertificateResponse> getMyCertificates(String userId) {
         var user = db.getUserRepository().findByIdWithCertificates(UUID.fromString(userId))
                 .orElseThrow(() -> new RuntimeException("User not found!"));
-
-        var allCertificatesModels = user.getMyCertificates();
-
-        return allCertificatesModels.stream()
+        return user.getMyCertificates().stream()
                 .map(c -> CertificateResponse.createDto(c, getStatus(c).toString()))
                 .collect(Collectors.toList());
     }
@@ -159,39 +157,39 @@ public class CertificateService {
     public List<CertificateResponse> getMyValidCertificates(String userId) {
         var user = db.getUserRepository().findByIdWithCertificates(UUID.fromString(userId))
                 .orElseThrow(() -> new RuntimeException("User not found!"));
-
-        var myValidCerts = user.getMyCertificates().stream()
+        var valid = user.getMyCertificates().stream()
                 .filter(c -> getStatus(c) == CertificateStatus.ACTIVE)
                 .collect(Collectors.toList());
-
-        return myValidCerts.stream()
+        return valid.stream()
                 .map(c -> CertificateResponse.createDto(c, getStatus(c).toString()))
                 .collect(Collectors.toList());
     }
 
     public List<CertificateResponse> getCertificatesSignedByMe(String userId) {
-        var allCertificatesModels = db.getCertificatesRepository().findBySignedById(UUID.fromString(userId));
-
-        return allCertificatesModels.stream()
+        var list = db.getCertificatesRepository().findBySignedById(UUID.fromString(userId));
+        return list.stream()
                 .map(c -> CertificateResponse.createDto(c, getStatus(c).toString()))
                 .collect(Collectors.toList());
     }
 
-    public void addCertificateToCaUser(rs.ac.uns.ftn.pki.certificates.dtos.AddCertificateToCaUserRequest addCertificateToCaUserRequest) {
-        var user = db.getUserRepository().findByIdWithCertificates(
-                        UUID.fromString(addCertificateToCaUserRequest.caUserId()))
+    @Transactional // write
+    public void addCertificateToCaUser(rs.ac.uns.ftn.pki.certificates.dtos.AddCertificateToCaUserRequest req) {
+        var user = db.getUserRepository()
+                .findByIdWithCertificates(UUID.fromString(req.caUserId()))
                 .orElseThrow(() -> new RuntimeException("User not found!"));
 
-        var certificate = db.getCertificatesRepository().findById(
-                        new BigInteger(addCertificateToCaUserRequest.newCertificateSerialNumber()))
+        // FIX: query by serialNumber (NOT findById)
+        var certificate = db.getCertificatesRepository()
+                .findBySerialNumber(new BigInteger(req.newCertificateSerialNumber()))
                 .orElseThrow(() -> new RuntimeException("Certificate not found!"));
 
         user.getMyCertificates().add(certificate);
         db.getUserRepository().save(user);
     }
 
-
-    public byte[] getCertificateWithPasswordAsPkcs12(DownloadCertificateRequest request, UUID requesterId, Role requesterRole) throws Exception {
+    @Transactional(readOnly = true)
+    public byte[] getCertificateWithPasswordAsPkcs12(DownloadCertificateRequest request,
+                                                     UUID requesterId, Role requesterRole) throws Exception {
         List<X509Certificate> chain = new ArrayList<>();
         CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
         BigInteger serialNumber = new BigInteger(request.getCertificateSerialNumber());
@@ -228,15 +226,12 @@ public class CertificateService {
         if (chain.isEmpty())
             throw new RuntimeException("No certificates in chain!");
 
-        // Convert BouncyCastle AsymmetricKeyParameter to java.security.PrivateKey
+        // Convert BC key to java.security.PrivateKey if present
         java.security.PrivateKey javaPrivateKey = null;
         AsymmetricKeyParameter bcPrivateKey = eeCertificate.getPrivateKey();
-        if (bcPrivateKey != null) {
-            PrivateKeyInfo pkInfo;
-            if (bcPrivateKey.isPrivate()) {
-                pkInfo = PrivateKeyInfoFactory.createPrivateKeyInfo(bcPrivateKey);
-                javaPrivateKey = new JcaPEMKeyConverter().getPrivateKey(pkInfo);
-            }
+        if (bcPrivateKey != null && bcPrivateKey.isPrivate()) {
+            PrivateKeyInfo pkInfo = PrivateKeyInfoFactory.createPrivateKeyInfo(bcPrivateKey);
+            javaPrivateKey = new JcaPEMKeyConverter().getPrivateKey(pkInfo);
         }
 
         // Create PKCS12 keystore
@@ -260,9 +255,10 @@ public class CertificateService {
         }
     }
 
-
+    // FIX: use the new repository method that fetch-joins by serialNumber
     private Optional<Certificate> getCertificate(BigInteger serialNumber) {
-        return db.getCertificatesRepository().findByIdWithSigningCertificateAndSignedBy(serialNumber);
+        return db.getCertificatesRepository()
+                .findBySerialNumberWithSigningCertificateAndSignedBy(serialNumber);
     }
 
     public CertificateStatus getStatus(Certificate certificate) {
