@@ -9,7 +9,11 @@
   padding: 80px 60px 60px 60px;
   color: var(--text);
 }
-
+.blue-button {
+  width: 200px;
+  margin-top: 24px;
+  vertical-align: middle;
+}
 /* Angular Material form fields */
 mat-form-field {
   margin-bottom: 42px;
@@ -18,7 +22,7 @@ mat-form-field {
 
 /* Finish button */
 .finish {
-  width: 9rem;
+  width: 200px;
 }
 
 /* Hide Angular Material hint/error line */

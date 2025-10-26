@@ -20,7 +20,6 @@ interface NavItem {
     NgIf,
     RouterLink,
     RouterLinkActive,
-    NgOptimizedImage,
     NgClass,
     NgFor
   ],

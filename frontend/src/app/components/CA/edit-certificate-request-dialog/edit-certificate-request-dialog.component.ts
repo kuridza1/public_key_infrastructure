@@ -36,7 +36,6 @@ import {CSRApprove} from '../../../models/CSRApprove';
     MatSelectModule,
     NgForOf,
     NgIf,
-    MatProgressSpinner,
     MatChipRemove,
     MatChipRow,
     MatChipSet

@@ -18,7 +18,7 @@ import { EmailConfirmationComponent } from './components/user/email-confirmation
 export const routes: Routes = [
   // Public
   { path: '', redirectTo: 'login', pathMatch: 'full' },
-  { path: 'login', component: LoginComponent },
+  { path: 'login', component: LoginComponent, canActivate: [noAuthGuard] },
   { path: 'register', component: RegistrationComponent, canActivate: [noAuthGuard] },
   { path: 'crl', component: CrlPageComponent },
 

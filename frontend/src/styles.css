@@ -67,13 +67,25 @@
 }
 
 /* === GLOBAL FONT === */
-html, body {
+html, body, .mat-typography, * {
   font-family: 'Poppins', sans-serif;
+}
+
+select,
+option,
+mat-select,
+.mat-mdc-select,
+.mat-mdc-select-panel,
+.mat-mdc-option {
+  font-family: 'Poppins', sans-serif !important;
+}
+
+html, body {
   background-image: linear-gradient(var(--color-accent), var(--color-primary));
-  color: var(--black);
   margin: 0;
   padding: 0;
   line-height: 1.5;
+    color: var(--color-primary);
 }
 
 /* === GLOBAL BUTTONS === */
@@ -241,3 +253,6 @@ a:hover {
   border-radius: 12px !important;
   overflow: hidden; /* prevents the outline corners from clipping incorrectly */
 }
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

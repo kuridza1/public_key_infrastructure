@@ -32,7 +32,6 @@ import {MatProgressSpinner} from '@angular/material/progress-spinner';
     NgIf,
     MatChipsModule,
     ReactiveFormsModule,
-    MatProgressSpinner
   ],
   templateUrl: './issue-certificate.component.html',
   styleUrl: './issue-certificate.component.css'

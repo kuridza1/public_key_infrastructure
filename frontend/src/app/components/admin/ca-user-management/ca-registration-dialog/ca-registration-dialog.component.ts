@@ -25,7 +25,6 @@ import {CaUser} from '../../../../models/CaUser';
     MatLabel,
     MatIconButton,
     NgForOf,
-    MatProgressSpinner,
     NgIf
   ],
   templateUrl: './ca-registration-dialog.component.html',
