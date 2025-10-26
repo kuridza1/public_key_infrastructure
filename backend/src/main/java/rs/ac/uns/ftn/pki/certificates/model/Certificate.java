@@ -57,6 +57,13 @@ public class Certificate extends BaseEntity {
     @Transient
     private AsymmetricKeyParameter privateKey;
 
+    // in rs.ac.uns.ftn.pki.certificates.model.Certificate
+    @Column(name = "keystore_path", length = 512)
+    private String keystorePath;
+
+    @Column(name = "keystore_alias", length = 128)
+    private String keystoreAlias;
+
     @ManyToOne(optional = true, fetch = FetchType.LAZY)
     @JoinColumn(
             name = "signed_by_id",
@@ -157,6 +164,12 @@ public class Certificate extends BaseEntity {
     public void setSignedBy(User signedBy) {
         this.signedBy = signedBy;
     }
+    public String getKeystorePath() { return keystorePath; }
+    public void setKeystorePath(String s) { this.keystorePath = s; }
+    public String getKeystoreAlias() { return keystoreAlias; }
+    public void setKeystoreAlias(String s) { this.keystoreAlias = s; }
+
+
 
     // --- PEM Conversion Helpers ---
     @Transient
