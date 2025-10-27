@@ -51,10 +51,10 @@ export class CertificateRequestsService {
     return this.httpClient.post<void>(`${this.urlCore}/approve`, csrApprove, { headers: headers });
   }
 
-  rejectRequest(request: string): Observable<void> {
+  rejectRequest(request: number): Observable<void> {
     const headers = this.createHeaders().set('Content-Type', 'application/json');
-    return this.httpClient.post<void>(`${this.urlCore}/reject`, JSON.stringify(request), { 
-      headers: headers 
+    return this.httpClient.post<void>(`${this.urlCore}/reject`, request.toString(), {
+      headers: headers
     });
   }
 }

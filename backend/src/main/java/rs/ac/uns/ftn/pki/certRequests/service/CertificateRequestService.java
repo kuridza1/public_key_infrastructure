@@ -8,7 +8,10 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
 
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
+import org.bouncycastle.crypto.util.PublicKeyFactory;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
@@ -25,6 +28,7 @@ import rs.ac.uns.ftn.pki.certRequests.utils.CertificateRequestBuilder;
 import rs.ac.uns.ftn.pki.certRequests.utils.CertificateRequestDecoder;
 import rs.ac.uns.ftn.pki.certRequests.utils.CertificateIssuerPort;
 
+import rs.ac.uns.ftn.pki.certRequests.utils.CsrBytes;
 import rs.ac.uns.ftn.pki.certificates.model.Certificate;
 import rs.ac.uns.ftn.pki.certificates.repository.CertificateRepository;
 import rs.ac.uns.ftn.pki.users.model.Role;
@@ -166,7 +170,7 @@ public class CertificateRequestService {
      */
     public void deleteCertificateRequest(String userIdStr, String requestIdStr) {
         UUID caId = UUID.fromString(userIdStr);
-        long reqId = Long.valueOf(requestIdStr);
+        long reqId = Long.valueOf(requestIdStr.trim());
 
         userRepo.findByIdAndRole(caId, Role.CaUser)
                 .orElseThrow(() -> new IllegalArgumentException("CA user not found!"));
@@ -186,7 +190,7 @@ public class CertificateRequestService {
      */
     public void approveCertificateRequest(String userIdStr, ApproveCertificateRequest approveRequest) {
         UUID caId = UUID.fromString(userIdStr);
-        UUID reqId = UUID.fromString(approveRequest.getRequestId());
+        long reqId = Long.parseLong(approveRequest.getRequestId());
 
         User ca = userRepo.findByIdAndRole(caId, Role.CaUser)
                 .orElseThrow(() -> new IllegalArgumentException("CA user not found!"));
@@ -199,16 +203,21 @@ public class CertificateRequestService {
         }
 
         try {
-            byte[] csrBytes = Base64.getDecoder().decode(req.getEncodedCsrNoHeader());
-            AsymmetricKeyParameter publicKey = (AsymmetricKeyParameter) new JcaPKCS10CertificationRequest(new PKCS10CertificationRequest(csrBytes))
-                    .getPublicKey();
+            if (java.security.Security.getProvider("BC") == null) {
+                java.security.Security.addProvider(new BouncyCastleProvider());
+            }
 
-            // Delegate issuance via the tiny port (no dependency on CertificateService)
+            byte[] der = CsrBytes.extract(req.getEncodedCSR());       // robust extractor you added earlier
+            PKCS10CertificationRequest csr = new PKCS10CertificationRequest(der);
+
+            SubjectPublicKeyInfo spki = csr.getSubjectPublicKeyInfo();
+            AsymmetricKeyParameter bcPub = PublicKeyFactory.createKey(spki);  // <-- BC type
+
             certificateIssuer.issue(
                     approveRequest.getRequestForm(),
                     userIdStr,
                     req.getRequestedFor().getId(),
-                    publicKey
+                    bcPub // <-- BC AsymmetricKeyParameter
             );
 
             // delete after successful issue

@@ -12,9 +12,9 @@ import rs.ac.uns.ftn.pki.certificates.dtos.DownloadCertificateRequest;
 import rs.ac.uns.ftn.pki.certificates.dtos.IssueCertificateRequest;
 import rs.ac.uns.ftn.pki.certificates.model.Certificate;
 import rs.ac.uns.ftn.pki.certificates.model.CertificateStatus;
-import rs.ac.uns.ftn.pki.dbContext.IUnifiedDbContext;
 import rs.ac.uns.ftn.pki.certificates.utils.CertificateBuilder;
 import rs.ac.uns.ftn.pki.certificates.utils.Pkcs12Manager;
+import rs.ac.uns.ftn.pki.dbContext.IUnifiedDbContext;
 import rs.ac.uns.ftn.pki.users.model.Role;
 import rs.ac.uns.ftn.pki.users.model.User;
 
@@ -26,6 +26,7 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -34,8 +35,8 @@ import java.util.stream.Collectors;
 public class CertificateService {
 
     private final IUnifiedDbContext db;
-    private final CertificateBuilder builder;   // bean version
-    private final Pkcs12Manager pkcs12Manager;  // for saving/loading keys
+    private final CertificateBuilder builder;   // builder bean
+    private final Pkcs12Manager pkcs12Manager;  // keystore manager
 
     public CertificateService(IUnifiedDbContext db,
                               CertificateBuilder builder,
@@ -56,9 +57,12 @@ public class CertificateService {
         if (userId == null || requestingUserId == null)
             throw new RuntimeException("User must be logged in!");
 
-        User user = db.getUserRepository().findByIdWithCertificates(UUID.fromString(userId))
+        UUID issuerUserId = UUID.fromString(userId);
+        UUID requesterUserId = UUID.fromString(requestingUserId);
+
+        User user = db.getUserRepository().findByIdWithCertificates(issuerUserId)
                 .orElseThrow(() -> new RuntimeException("Signing user not found!"));
-        User requestingUser = db.getUserRepository().findByIdWithCertificates(UUID.fromString(requestingUserId))
+        User requestingUser = db.getUserRepository().findByIdWithCertificates(requesterUserId)
                 .orElseThrow(() -> new RuntimeException("Requesting user not found!"));
 
         // Generate subject RSA pair if not provided
@@ -97,15 +101,23 @@ public class CertificateService {
         if (req.notBefore().isAfter(req.notAfter()))
             throw new RuntimeException("NotBefore cannot be later than the NotAfter!");
 
-        if (!isAdmin && issuer != null &&
-                user.getMyCertificates().stream().noneMatch(c -> c.getSerialNumber().equals(issuer.getSerialNumber())))
-            throw new RuntimeException("You don't have control over selected signing certificate!");
+        // ✅ Ownership check (FIXED): ensure the CA actually OWNS the issuing cert
+        if (!isAdmin && issuer != null) {
+            OffsetDateTime now = OffsetDateTime.now();
+            boolean ownsIssuer = db.getCertificatesRepository()
+                    .findActiveSigningByIssuer(issuerUserId, now)
+                    .stream()
+                    .anyMatch(c -> c.getSerialNumber().equals(issuer.getSerialNumber()));
+            if (!ownsIssuer) {
+                throw new RuntimeException("You don't have control over selected signing certificate!");
+            }
+        }
 
-        // ---- Issue certificate (builder will handle PKCS#12 saving/loading for CA keys) ----
+        // Issue certificate
         Certificate certificate = builder.createCertificate(
                 req, subjectPublicKey, subjectPrivateKey, issuer, user);
 
-        // Ownership
+        // Ownership for the requester
         if (requestingUser.getRole() == Role.EeUser ||
                 (requestingUser.getRole() == Role.CaUser && certificate.getCanSign())) {
             requestingUser.getMyCertificates().add(certificate);
@@ -123,6 +135,7 @@ public class CertificateService {
                 .collect(Collectors.toList());
     }
 
+    // (kept for compatibility) – system-wide valid signing certs
     public List<CertificateResponse> getAllValidSigningCertificates() {
         return db.getCertificatesRepository().findByCanSignTrue().stream()
                 .filter(c -> getStatus(c) == CertificateStatus.ACTIVE)
@@ -130,32 +143,53 @@ public class CertificateService {
                 .collect(Collectors.toList());
     }
 
+    // Fast version using DB-side filtering
+    public List<CertificateResponse> getAllValidSigningCertificatesFast() {
+        var now = OffsetDateTime.now();
+        return db.getCertificatesRepository().findAllActiveSigning(now).stream()
+                .map(c -> CertificateResponse.createDto(c, CertificateStatus.ACTIVE.toString()))
+                .toList();
+    }
+
+    // CA: list of valid signing certs that the CA user does NOT have (DB-only, no in-memory user certs)
     public List<CertificateResponse> getValidSigningCertificatesCaUserDoesntHave(String caUserId) {
-        var user = db.getUserRepository().findByIdWithCertificates(UUID.fromString(caUserId))
+        var userId = UUID.fromString(caUserId);
+        db.getUserRepository().findByIdAndRole(userId, rs.ac.uns.ftn.pki.users.model.Role.CaUser)
                 .orElseThrow(() -> new RuntimeException("User not found!"));
 
-        return db.getCertificatesRepository().findByCanSignWithSigningCertificate().stream()
-                .filter(c -> !user.getMyCertificates().contains(c))
-                .filter(c -> getStatus(c) == CertificateStatus.ACTIVE)
+        var now = OffsetDateTime.now();
+        return db.getCertificatesRepository()
+                .findActiveSigningNotAssignedTo(userId, now).stream()
                 .map(c -> CertificateResponse.createDto(c, CertificateStatus.ACTIVE.toString()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
+    // ✅ "My certificates" = certificates where signedBy == user (no inversion)
     public List<CertificateResponse> getMyCertificates(String userId) {
-        var user = db.getUserRepository().findByIdWithCertificates(UUID.fromString(userId))
-                .orElseThrow(() -> new RuntimeException("User not found!"));
-        return user.getMyCertificates().stream()
+        UUID uid = UUID.fromString(userId);
+        db.getUserRepository().findById(uid).orElseThrow(() -> new RuntimeException("User not found!"));
+        return db.getCertificatesRepository().findBySignedById(uid).stream()
                 .map(c -> CertificateResponse.createDto(c, getStatus(c).toString()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
+    // ✅ "My valid certificates" (all types) = my certs filtered to ACTIVE
     public List<CertificateResponse> getMyValidCertificates(String userId) {
-        var user = db.getUserRepository().findByIdWithCertificates(UUID.fromString(userId))
-                .orElseThrow(() -> new RuntimeException("User not found!"));
-        return user.getMyCertificates().stream()
+        UUID uid = UUID.fromString(userId);
+        db.getUserRepository().findById(uid).orElseThrow(() -> new RuntimeException("User not found!"));
+        return db.getCertificatesRepository().findBySignedById(uid).stream()
                 .filter(c -> getStatus(c) == CertificateStatus.ACTIVE)
                 .map(c -> CertificateResponse.createDto(c, CertificateStatus.ACTIVE.toString()))
-                .collect(Collectors.toList());
+                .toList();
+    }
+
+    // ✅ "My valid signing certificates" only (DB-side filtered, time-valid & not revoked)
+    public List<CertificateResponse> getMyValidSigningCertificates(String userId) {
+        var now = OffsetDateTime.now();
+        return db.getCertificatesRepository()
+                .findActiveSigningByIssuer(UUID.fromString(userId), now).stream()
+                .map(c -> CertificateResponse.createDto(c, CertificateStatus.ACTIVE.toString()))
+                .toList();
     }
 
     public List<CertificateResponse> getCertificatesSignedByMe(String userId) {
@@ -174,17 +208,13 @@ public class CertificateService {
                 .findBySerialNumber(new BigInteger(req.newCertificateSerialNumber()))
                 .orElseThrow(() -> new RuntimeException("Certificate not found!"));
 
-        // Set the owning side
+        // Set owner side
         certificate.setSignedBy(user);
-
-        // Optional: keep both sides in sync in memory
+        // Keep both sides in sync in memory (optional)
         user.getMyCertificates().add(certificate);
 
-        // Persist the owner
         db.getCertificatesRepository().save(certificate);
-        // saving user is optional here; owner save is what writes the FK
     }
-
 
     // ===================== DOWNLOAD (PKCS#12 EXPORT) =====================
 
@@ -205,18 +235,16 @@ public class CertificateService {
             throw new RuntimeException("You cannot download certificates that aren't yours!");
         }
 
-        // Build trust chain (end-entity up to root)
+        // Build trust chain
         List<X509Certificate> chain = buildChain(eeCert);
         if (chain.isEmpty()) throw new RuntimeException("No certificates in chain!");
 
-        // If we have a keystore reference for this cert (we generated and stored its private key), export key+chain
+        // Optional: export with private key if we have a keystore reference
         java.security.PrivateKey privateKey = null;
         if (eeCert.getKeystorePath() != null && eeCert.getKeystoreAlias() != null) {
             try {
                 privateKey = pkcs12Manager.loadPrivateKey(eeCert.getKeystorePath(), eeCert.getKeystoreAlias());
-            } catch (Exception ignored) {
-                // fall back to cert-only export if key isn't available
-            }
+            } catch (Exception ignored) { /* fall back to cert-only export */ }
         }
 
         // Create PKCS#12
@@ -228,7 +256,6 @@ public class CertificateService {
             p12.setKeyEntry(alias, privateKey, request.getPassword().toCharArray(),
                     chain.toArray(new X509Certificate[0]));
         } else {
-            // cert-only export
             p12.setCertificateEntry(alias, chain.get(0));
             for (int i = 1; i < chain.size(); i++) {
                 p12.setCertificateEntry(alias + "-chain-" + i, chain.get(i));
@@ -248,7 +275,7 @@ public class CertificateService {
                 .findBySerialNumberWithSigningCertificateAndSignedBy(serialNumber);
     }
 
-    /** Build X509 chain (end-entity -> ... -> root) by following signingCertificate references. */
+    /** Build X509 chain (end-entity -> ... -> root) by following signingCertificate refs. */
     private List<X509Certificate> buildChain(Certificate leaf) throws Exception {
         List<X509Certificate> out = new ArrayList<>();
         CertificateFactory cf = CertificateFactory.getInstance("X.509");

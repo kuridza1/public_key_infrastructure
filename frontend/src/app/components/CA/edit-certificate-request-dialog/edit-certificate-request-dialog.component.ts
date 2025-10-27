@@ -9,7 +9,7 @@ import {MatNativeDateModule} from '@angular/material/core';
 import {MatSelect, MatSelectModule} from '@angular/material/select';
 import {MatIconModule} from '@angular/material/icon';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {MatProgressSpinner} from '@angular/material/progress-spinner';
+import {ToastrService} from '../../helpers/toastr/toastr.service';
 import {MatChipRemove, MatChipRow, MatChipSet} from '@angular/material/chips';
 import { KeyUsageValue } from '../../../models/KeyUsageValue';
 import {ExtendedKeyUsageValue} from '../../../models/ExtendedKeyUsageValue';
@@ -52,7 +52,7 @@ export class EditCertificateRequestDialogComponent implements OnInit {
   certificateRequestsService = inject(CertificateRequestsService);
   certificatesService = inject(CertificatesService);
   csr = inject<CSRResponse>(MAT_DIALOG_DATA);
-  snack = inject(MatSnackBar);
+  toast = inject(ToastrService)
   auth = inject(AuthService);
   ngZone = inject(NgZone);
 
@@ -86,14 +86,6 @@ export class EditCertificateRequestDialogComponent implements OnInit {
     this.fillForm();
   }
 
-  private showToast(message: string, type: 'success' | 'error' | 'info' = 'info') {
-    this.snack.open(message, 'OK', {
-      duration: 3000,
-      horizontalPosition: 'right',
-      verticalPosition: 'bottom',
-      panelClass: type === 'error' ? 'toast-error' : type === 'success' ? 'toast-success' : 'toast-info'
-    });
-  }
 
   fillForm() {
     this.dateNotBefore = this.csr.notBefore;
@@ -148,7 +140,7 @@ export class EditCertificateRequestDialogComponent implements OnInit {
   }
 
   loadCaSigningCertificates() {
-    this.certificatesService.getMyValidCertificates().subscribe({
+    this.certificatesService.getMyValidSigningCertificates().subscribe({
       next: value => {
         if (value.length === 0) {
           this.noSigningCertificates = true;
@@ -160,7 +152,7 @@ export class EditCertificateRequestDialogComponent implements OnInit {
         this.loading = false;
       },
       error: () => {
-        this.showToast('Unable to get signing certificates', 'error');
+        this.toast.error('Unable to get signing certificates', 'error');
       }
     });
   }
@@ -246,13 +238,13 @@ export class EditCertificateRequestDialogComponent implements OnInit {
     const key = `invalid${type[0].toUpperCase() + type.slice(1)}`;
 
     if (type === 'notBefore' && this.dateNotAfter && date >= this.dateNotAfter) {
-      this.showToast('Not Before must be before Not After', 'error');
+      this.toast.error('Not Before must be before Not After', 'error');
       control.control.setErrors({[key]: true});
       return;
     }
 
     if (type === 'notAfter' && this.dateNotBefore && date <= this.dateNotBefore) {
-      this.showToast('Not After must be after Not Before', 'error');
+      this.toast.error('Not After must be after Not Before', 'error');
       control.control.setErrors({[key]: true});
       return;
     }
@@ -264,7 +256,7 @@ export class EditCertificateRequestDialogComponent implements OnInit {
     const isSelfSign = this.signingCertificate === 'SelfSign';
 
     if (!isSelfSign && certDate && ((type === 'notBefore' && date < new Date(certDate)) || (type === 'notAfter' && date > new Date(certDate)))) {
-      this.showToast(`${label} must be ${direction} signing certificate's ${label}`, 'error');
+      this.toast.error(`${label} must be ${direction} signing certificate's ${label}`, 'error');
       control.control.setErrors({[key]: true});
       return;
     }
@@ -329,24 +321,24 @@ export class EditCertificateRequestDialogComponent implements OnInit {
     this.certificateRequestsService.approveRequest(dto).subscribe({
       next: () => {
         this.loading = false;
-        this.showToast('Certificate issued successfully', 'success');
+        this.toast.success('Certificate issued successfully', 'success');
         this.closeDialogAndReload();
       },
       error: err => {
-        this.showToast(`Unable to issue the certificate: ${err}`, 'error');
+        this.toast.error(`Unable to issue the certificate: ${err}`, 'error');
       }
     });
   }
 
   onReject() {
-    this.certificateRequestsService.rejectRequest(this.csr.id).subscribe({
+    this.certificateRequestsService.rejectRequest(Number(this.csr.id)).subscribe({
       next: () => {
         this.loading = false;
-        this.showToast('Certificate request rejected successfully', 'success');
+        this.toast.success('Certificate request rejected successfully', 'success');
         this.closeDialogAndReload();
       },
       error: err => {
-        this.showToast(`Unable to reject the certificate request: ${err}`, 'error');
+        this.toast.error(`Unable to reject the certificate request: ${err}`, 'error');
       }
     });
   }

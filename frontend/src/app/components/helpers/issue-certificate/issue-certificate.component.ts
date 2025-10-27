@@ -80,7 +80,7 @@ export class IssueCertificateComponent implements OnInit {
 
   loadCaSigningCertificates() {
     this.signingCertificates = []
-    this.certificatesService.getMyValidCertificates().subscribe({
+    this.certificatesService.getMyValidSigningCertificates().subscribe({
       next: value => {
         if (value.length === 0) {
           this.noSigningCertificates = true;

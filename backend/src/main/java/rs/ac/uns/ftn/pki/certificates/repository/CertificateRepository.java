@@ -56,21 +56,57 @@ public interface CertificateRepository extends JpaRepository<Certificate, UUID> 
     """)
     List<Certificate> findActiveCertificates();
 
-    // For listing active signing certs for an issuer while excluding revoked
+    // Self-signed (roots)
+    List<Certificate> findBySigningCertificateIsNull();
+
+    // 1) All valid signing certs (system-wide)
     @Query("""
-        SELECT c FROM Certificate c
-        WHERE c.signedBy.id = :issuerId
-          AND c.notBefore <= :now
-          AND c.notAfter  >= :now
-          AND c.canSign = true
-          AND NOT EXISTS (
-             SELECT 1 FROM RevokedCertificate r
-             WHERE r.certificateSerialNumber = c.serialNumber
-          )
-    """)
+    SELECT c FROM Certificate c
+    WHERE c.canSign = true
+      AND c.notBefore <= :now
+      AND c.notAfter  >= :now
+      AND NOT EXISTS (
+         SELECT 1 FROM RevokedCertificate r
+         WHERE r.certificateSerialNumber = c.serialNumber
+      )
+""")
+    List<Certificate> findAllActiveSigning(@Param("now") OffsetDateTime now);
+
+    // 2) Valid signing certs ISSUED BY a user (your "mine" today)
+    @Query("""
+    SELECT c FROM Certificate c
+    WHERE c.signedBy.id = :issuerId
+      AND c.canSign = true
+      AND c.notBefore <= :now
+      AND c.notAfter  >= :now
+      AND NOT EXISTS (
+         SELECT 1 FROM RevokedCertificate r
+         WHERE r.certificateSerialNumber = c.serialNumber
+      )
+""")
     List<Certificate> findActiveSigningByIssuer(@Param("issuerId") UUID issuerId,
                                                 @Param("now") OffsetDateTime now);
 
-    // Self-signed (roots)
-    List<Certificate> findBySigningCertificateIsNull();
+    @Query("""
+    SELECT c FROM Certificate c
+    WHERE c.canSign = true
+      AND c.signingCertificate IS NOT NULL
+      AND c.notBefore <= :now
+      AND c.notAfter  >= :now
+      AND NOT EXISTS (
+         SELECT 1 FROM RevokedCertificate r
+         WHERE r.certificateSerialNumber = c.serialNumber
+      )
+      AND NOT EXISTS (
+         SELECT 1
+         FROM User u
+         JOIN u.assignedCertificates ac
+         WHERE u.id = :userId
+           AND ac = c
+      )
+""")
+    List<Certificate> findActiveSigningNotAssignedTo(@Param("userId") UUID userId,
+                                                     @Param("now") java.time.OffsetDateTime now);
+
+
 }

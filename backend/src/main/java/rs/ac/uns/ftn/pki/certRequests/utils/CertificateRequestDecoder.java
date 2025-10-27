@@ -1,33 +1,18 @@
 package rs.ac.uns.ftn.pki.certRequests.utils;
 
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.ASN1Sequence;
-import org.bouncycastle.asn1.pkcs.Attribute;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
-import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.asn1.x509.CertificatePolicies;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.Extensions;
-import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
-import org.bouncycastle.asn1.x509.GeneralNames;
-import org.bouncycastle.asn1.x509.KeyPurposeId;
-import org.bouncycastle.asn1.x509.KeyUsage;
-import org.bouncycastle.asn1.x509.NameConstraints;
-import org.bouncycastle.asn1.x509.PolicyInformation;
+import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
-
-import rs.ac.uns.ftn.pki.certRequests.dtos.CertificateRequestResponse;
 import rs.ac.uns.ftn.pki.certRequests.model.CertificateRequest;
+import rs.ac.uns.ftn.pki.certRequests.dtos.CertificateRequestResponse;
 import rs.ac.uns.ftn.pki.certificates.model.extensionValues.*;
+
+import java.util.*;
 
 public final class CertificateRequestDecoder {
 
@@ -35,8 +20,25 @@ public final class CertificateRequestDecoder {
 
     public static CertificateRequestResponse decodeCertificateRequest(CertificateRequest req) {
         try {
-            byte[] csrBytes = java.util.Base64.getDecoder().decode(req.getEncodedCsrNoHeader());
-            PKCS10CertificationRequest csr = new PKCS10CertificationRequest(csrBytes);
+            String b64 = req.getEncodedCsrNormalized();
+            if (b64 == null || b64.isBlank()) {
+                throw new IllegalArgumentException("Empty CSR");
+            }
+
+            byte[] der;
+            try {
+                der = Base64.getDecoder().decode(b64);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Base64 decode failed: " + e.getMessage(), e);
+            }
+
+            // Quick DER sanity: must start with SEQUENCE (0x30)
+            if (der.length < 2 || (der[0] & 0xFF) != 0x30) {
+                throw new IllegalArgumentException("CSR is not DER SEQUENCE (first byte=" +
+                        (der.length == 0 ? "<empty>" : String.format("0x%02X", der[0])) + ")");
+            }
+
+            PKCS10CertificationRequest csr = new PKCS10CertificationRequest(der);
 
             // Subject
             X500Name subject = csr.getSubject();
@@ -57,16 +59,16 @@ public final class CertificateRequestDecoder {
             dto.setNotAfter(req.getNotAfter());
             dto.setSubmittedOn(req.getSubmittedOn());
 
-            // Extensions (from extensionRequest attribute)
-            Attribute[] attrs = csr.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
-            if (attrs != null && attrs.length > 0) {
+            // Extensions from extensionRequest attribute
+            var attrs = csr.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
+            if (attrs != null && attrs.length > 0 && attrs[0].getAttrValues().size() > 0) {
                 Extensions exts = Extensions.getInstance(attrs[0].getAttrValues().getObjectAt(0));
 
                 // BasicConstraints
                 var bcExt = exts.getExtension(Extension.basicConstraints);
                 if (bcExt != null) {
                     BasicConstraints bc = BasicConstraints.getInstance(bcExt.getParsedValue());
-                    BasicConstraintsValue value = new BasicConstraintsValue();
+                    var value = new BasicConstraintsValue();
                     value.setIsCa(bc.isCA());
                     if (bc.getPathLenConstraint() != null) {
                         value.setPathLen(bc.getPathLenConstraint().intValue());
@@ -80,9 +82,7 @@ public final class CertificateRequestDecoder {
                     KeyUsage ku = KeyUsage.getInstance(kuExt.getParsedValue());
                     List<KeyUsageValue> list = new ArrayList<>();
                     for (var e : KEY_USAGE_MAP.entrySet()) {
-                        if (ku.hasUsages(e.getValue())) {
-                            list.add(e.getKey());
-                        }
+                        if (ku.hasUsages(e.getValue())) list.add(e.getKey());
                     }
                     dto.setKeyUsage(list);
                 }
@@ -93,9 +93,7 @@ public final class CertificateRequestDecoder {
                     ExtendedKeyUsage eku = ExtendedKeyUsage.getInstance(ekuExt.getParsedValue());
                     List<ExtendedKeyUsageValue> list = new ArrayList<>();
                     for (var e : EKU_MAP.entrySet()) {
-                        if (eku.hasKeyPurposeId(e.getValue())) {
-                            list.add(e.getKey());
-                        }
+                        if (eku.hasKeyPurposeId(e.getValue())) list.add(e.getKey());
                     }
                     dto.setExtendedKeyUsage(list);
                 }
@@ -104,7 +102,7 @@ public final class CertificateRequestDecoder {
                 var sanExt = exts.getExtension(Extension.subjectAlternativeName);
                 if (sanExt != null) {
                     GeneralNames san = GeneralNames.getInstance(sanExt.getParsedValue());
-                    dto.setSubjectAlternativeNames(ListOfNames.fromGeneralNames(san)); // assumes helper exists
+                    dto.setSubjectAlternativeNames(ListOfNames.fromGeneralNames(san));
                 }
 
                 // IAN
@@ -118,20 +116,25 @@ public final class CertificateRequestDecoder {
                 var ncExt = exts.getExtension(Extension.nameConstraints);
                 if (ncExt != null) {
                     NameConstraints nc = NameConstraints.getInstance(ncExt.getParsedValue());
-                    dto.setNameConstraints(NamesConstraintsValue.fromNameConstraints(nc)); // assumes helper exists
+                    dto.setNameConstraints(NamesConstraintsValue.fromNameConstraints(nc));
                 }
 
                 // CertificatePolicies
                 var cpExt = exts.getExtension(Extension.certificatePolicies);
                 if (cpExt != null) {
                     CertificatePolicies cps = CertificatePolicies.getInstance(cpExt.getParsedValue());
-                    PolicyInformation pi = cps.getPolicyInformation()[0];
-                    dto.setCertificatePolicy(CertificatePolicy.fromPolicyInformation(pi)); // assumes helper exists
+                    PolicyInformation[] pis = cps.getPolicyInformation();
+                    if (pis != null && pis.length > 0) {
+                        dto.setCertificatePolicy(CertificatePolicy.fromPolicyInformation(pis[0]));
+                    }
                 }
             }
 
             return dto;
         } catch (Exception e) {
+            // Optional temporary diagnostics
+            // System.err.println("[CSR DEBUG] id=" + req.getId() + " len=" +
+            //    (req.getEncodedCSR()==null?0:req.getEncodedCSR().length()) + " err=" + e.getMessage());
             throw new RuntimeException("Failed to decode CSR", e);
         }
     }
@@ -142,7 +145,7 @@ public final class CertificateRequestDecoder {
         return IETFUtils.valueToString(rdns[0].getFirst().getValue());
     }
 
-    // --- Maps mirroring your C# dictionaries ---
+    // Maps
     private static final Map<KeyUsageValue, Integer> KEY_USAGE_MAP = new EnumMap<>(KeyUsageValue.class);
     private static final Map<ExtendedKeyUsageValue, KeyPurposeId> EKU_MAP = new EnumMap<>(ExtendedKeyUsageValue.class);
     static {
