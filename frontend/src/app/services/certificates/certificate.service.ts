@@ -60,7 +60,7 @@ export class CertificatesService {
   }
   getMyValidSigningCertificates(): Observable<Certificate[]> {
     const headers = this.createHeaders();
-    return this.httpClient.get<Certificate[]>(`${this.urlCore}/valid-signing/mine`, { headers: headers });
+    return this.httpClient.get<Certificate[]>(`${this.urlCore}/get-my-valid-certificates`, { headers: headers });
   }
 
   getCertificatesSignedByMe(): Observable<Certificate[]> {

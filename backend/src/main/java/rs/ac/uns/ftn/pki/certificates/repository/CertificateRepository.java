@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import rs.ac.uns.ftn.pki.certificates.model.Certificate;
+import rs.ac.uns.ftn.pki.users.model.User;
 
 import java.math.BigInteger;
 import java.time.OffsetDateTime;
@@ -88,6 +89,23 @@ public interface CertificateRepository extends JpaRepository<Certificate, UUID> 
                                                 @Param("now") OffsetDateTime now);
 
     @Query("""
+SELECT c FROM User u
+JOIN u.assignedCertificates c
+LEFT JOIN FETCH c.signingCertificate
+LEFT JOIN FETCH c.signedBy
+WHERE u.id = :userId
+  AND c.canSign = true
+  AND c.notBefore <= :now
+  AND c.notAfter  >= :now
+  AND NOT EXISTS (
+     SELECT 1 FROM RevokedCertificate r
+     WHERE r.certificateSerialNumber = c.serialNumber
+  )
+""")
+    List<Certificate> findActiveSigningAssignedToUser(@Param("userId") UUID userId,
+                                                      @Param("now") OffsetDateTime now);
+
+    @Query("""
     SELECT c FROM Certificate c
     WHERE c.canSign = true
       AND c.signingCertificate IS NOT NULL
@@ -107,6 +125,16 @@ public interface CertificateRepository extends JpaRepository<Certificate, UUID> 
 """)
     List<Certificate> findActiveSigningNotAssignedTo(@Param("userId") UUID userId,
                                                      @Param("now") java.time.OffsetDateTime now);
+
+    // CertificateRepository
+    @Query("""
+    SELECT c FROM User u
+    JOIN u.assignedCertificates c
+    LEFT JOIN FETCH c.signingCertificate
+    LEFT JOIN FETCH c.signedBy
+    WHERE u.id = :userId
+""")
+    List<Certificate> findAssignedToUser(@Param("userId") UUID userId);
 
 
 }

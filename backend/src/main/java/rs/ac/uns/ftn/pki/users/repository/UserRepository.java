@@ -54,4 +54,13 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @EntityGraph(attributePaths = {"issuedCertificates"})
     Optional<User> findWithMyCertificatesByIdAndRole(UUID id, Role role);
 
+    // UserRepository
+    @Query("""
+    SELECT u FROM User u
+    LEFT JOIN FETCH u.assignedCertificates
+    WHERE u.id = :id
+""")
+    Optional<User> findByIdWithAssignedCertificates(@Param("id") UUID id);
+
+
 }

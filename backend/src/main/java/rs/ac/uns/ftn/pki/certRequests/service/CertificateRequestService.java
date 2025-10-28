@@ -75,7 +75,7 @@ public class CertificateRequestService {
 
         // Active signing certs for issuer (repo-side filter: time window, canSign, not revoked)
         var now = OffsetDateTime.now();
-        var activeCerts = certificateRepository.findActiveSigningByIssuer(issuer.getId(), now);
+        var activeCerts = certificateRepository.findActiveSigningAssignedToUser(issuer.getId(), now);
         if (activeCerts == null || activeCerts.isEmpty()) {
             throw new IllegalStateException("Requested issuer is not able to sign certificates!");
         }

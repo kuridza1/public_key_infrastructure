@@ -105,7 +105,7 @@ public class CertificateService {
         if (!isAdmin && issuer != null) {
             OffsetDateTime now = OffsetDateTime.now();
             boolean ownsIssuer = db.getCertificatesRepository()
-                    .findActiveSigningByIssuer(issuerUserId, now)
+                    .findActiveSigningAssignedToUser(issuerUserId, now)
                     .stream()
                     .anyMatch(c -> c.getSerialNumber().equals(issuer.getSerialNumber()));
             if (!ownsIssuer) {
@@ -120,7 +120,7 @@ public class CertificateService {
         // Ownership for the requester
         if (requestingUser.getRole() == Role.EeUser ||
                 (requestingUser.getRole() == Role.CaUser && certificate.getCanSign())) {
-            requestingUser.getMyCertificates().add(certificate);
+            requestingUser.getAssignedCertificates().add(certificate);
         }
 
         db.getCertificatesRepository().save(certificate);
@@ -167,8 +167,14 @@ public class CertificateService {
     // ✅ "My certificates" = certificates where signedBy == user (no inversion)
     public List<CertificateResponse> getMyCertificates(String userId) {
         UUID uid = UUID.fromString(userId);
-        db.getUserRepository().findById(uid).orElseThrow(() -> new RuntimeException("User not found!"));
-        return db.getCertificatesRepository().findBySignedById(uid).stream()
+
+        var user = db.getUserRepository().findById(uid)
+                .orElseThrow(() -> new RuntimeException("User not found!"));
+
+        // “My” means: what’s assigned to me (for both CA and EE)
+        var certs = db.getCertificatesRepository().findAssignedToUser(uid);
+
+        return certs.stream()
                 .map(c -> CertificateResponse.createDto(c, getStatus(c).toString()))
                 .toList();
     }
@@ -177,7 +183,8 @@ public class CertificateService {
     public List<CertificateResponse> getMyValidCertificates(String userId) {
         UUID uid = UUID.fromString(userId);
         db.getUserRepository().findById(uid).orElseThrow(() -> new RuntimeException("User not found!"));
-        return db.getCertificatesRepository().findBySignedById(uid).stream()
+
+        return db.getCertificatesRepository().findAssignedToUser(uid).stream()
                 .filter(c -> getStatus(c) == CertificateStatus.ACTIVE)
                 .map(c -> CertificateResponse.createDto(c, CertificateStatus.ACTIVE.toString()))
                 .toList();
@@ -211,8 +218,7 @@ public class CertificateService {
         // Set owner side
         certificate.setSignedBy(user);
         // Keep both sides in sync in memory (optional)
-        user.getMyCertificates().add(certificate);
-
+        user.getAssignedCertificates().add(certificate);
         db.getCertificatesRepository().save(certificate);
     }
 
