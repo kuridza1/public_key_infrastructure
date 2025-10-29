@@ -2,7 +2,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #1e1e1e; /* replace $background */
+  background-color: white;
   padding: 80px 54px;
 }
 
@@ -55,11 +55,11 @@
 }
 
 .certificate-form .row mat-form-field ::ng-deep .mat-mdc-input-element {
-  color: #fff; /* replace $text */
+  color: var(--color-primary); /* replace $text */
 }
 
 .certificate-form .row mat-form-field ::ng-deep .mat-mdc-floating-label {
-  color: #ddd !important; /* replace $whitish */
+  color: var(--color-primary) !important; /* replace $whitish */
 }
 
 .certificate-form .extensions-container {
@@ -79,7 +79,7 @@
 .certificate-form .extension-row button[mat-icon-button] {
   margin-left: -8px;
   transform: scale(1.1);
-  color: #ddd; /* replace $whitish */
+  color: var(--color-primary);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -148,7 +148,7 @@
   max-width: 332px;
   text-align: start;
   height: 19px;
-  color: #aaa; /* replace $pale-text */
+  color: var(--color-primary); /* replace $pale-text */
 }
 
 .actions {
@@ -167,7 +167,7 @@
 }
 
 .remove-icon {
-  color: #777 !important; /* replace $edge3 */
+  color: var(--color-primary) !important; /* replace $edge3 */
 }
 
 .no-signing-certificates {

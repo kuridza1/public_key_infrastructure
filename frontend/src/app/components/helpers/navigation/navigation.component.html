@@ -1,17 +1,11 @@
-<div class="sidebar">
-  <span class="sidebar-banner">
-    <img priority ngSrc="/banner.svg" alt="" fill>
-  </span>
-
-  <hr class="sidebar-line">
-
+<nav class="navbar">
   <ng-container *ngFor="let item of sidebarItems">
     <a *ngIf="currentUserRole && item.roles.includes(currentUserRole)"
        (click)="item.action ? item.action() : null"
        routerLinkActive="active-link"
        [routerLink]="item.link"
        [ngClass]="item.class">
-      <span class="material-symbols-rounded">{{ item.icon }}</span> {{ item.label }}
+      <span class="label">{{ item.label }}</span>
     </a>
   </ng-container>
-</div>
+</nav>

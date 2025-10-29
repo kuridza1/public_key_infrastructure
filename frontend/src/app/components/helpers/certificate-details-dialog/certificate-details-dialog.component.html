@@ -1,12 +1,8 @@
 <div class="container">
-  <button (click)="onNoClick()" class="close-button" mat-icon-button tabindex="-1">
-    <span class="material-symbols-rounded">close</span>
-  </button>
-
   <mat-form-field appearance="outline">
     <mat-label>Certificate</mat-label>
     <textarea disabled [scrollTop]="0" rows="20" class="textarea" matInput [value]="encodedCertificate"></textarea>
   </mat-form-field>
-
   <button class="blue-button" [cdkCopyToClipboard]="encodedCertificate" (cdkCopyToClipboardCopied)="onCopied()">Copy</button>
+  <button class="btn-accent blue-button" [cdkCopyToClipboard]="encodedCertificate" (cdkCopyToClipboardCopied)="onNoClick()">Close</button>
 </div>

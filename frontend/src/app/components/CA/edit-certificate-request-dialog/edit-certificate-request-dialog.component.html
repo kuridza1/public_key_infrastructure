@@ -4,7 +4,6 @@
   </button>
 
   <div *ngIf="loading" class="loading-overlay">
-    <mat-spinner></mat-spinner>
   </div>
   <div *ngIf="noSigningCertificates" class="no-signing-certificates">
     You currently don't have any certificates that you can use to fulfill this request.
@@ -229,9 +228,10 @@
       <button class="blue-button large-btn" type="button" (click)="onReject()">
         Reject
       </button>
-      <button class="blue-button large-btn" type="submit" [disabled]="certForm.invalid">
+      <button class="blue-button large-btn" type="submit"  *ngIf=!certForm.invalid>
         Approve
       </button>
     </div>
+    <div style="color:#D991BA" *ngIf=certForm.invalid>This request is invalid and can't be approved. </div>
   </form>
 </div>

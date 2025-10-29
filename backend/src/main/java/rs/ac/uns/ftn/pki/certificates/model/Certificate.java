@@ -43,20 +43,25 @@ public class Certificate extends BaseEntity {
     private OffsetDateTime notAfter;
 
     @NotBlank
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "text")
     private String encodedValue; // Base64-encoded DER (X.509)
 
     @NotNull
     @Column(nullable = false)
     private Boolean canSign;
 
-    @Min(0)
     @Column(nullable = false)
     private int pathLen;
 
     @Transient
     private AsymmetricKeyParameter privateKey;
+
+    // in rs.ac.uns.ftn.pki.certificates.model.Certificate
+    @Column(name = "keystore_path", length = 512)
+    private String keystorePath;
+
+    @Column(name = "keystore_alias", length = 128)
+    private String keystoreAlias;
 
     @ManyToOne(optional = true, fetch = FetchType.LAZY)
     @JoinColumn(
@@ -158,6 +163,12 @@ public class Certificate extends BaseEntity {
     public void setSignedBy(User signedBy) {
         this.signedBy = signedBy;
     }
+    public String getKeystorePath() { return keystorePath; }
+    public void setKeystorePath(String s) { this.keystorePath = s; }
+    public String getKeystoreAlias() { return keystoreAlias; }
+    public void setKeystoreAlias(String s) { this.keystoreAlias = s; }
+
+
 
     // --- PEM Conversion Helpers ---
     @Transient

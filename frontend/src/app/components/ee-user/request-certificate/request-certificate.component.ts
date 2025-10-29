@@ -39,7 +39,6 @@ import {CertificateRequestsService} from '../../../services/certificates/certifi
     MatTabGroup,
     MatTab,
     MatTabContent,
-    MatProgressSpinner,
     MatChipRemove,
     MatChipRow,
     MatChipSet

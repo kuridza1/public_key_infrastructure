@@ -37,9 +37,7 @@ import {MatProgressSpinner} from '@angular/material/progress-spinner';
     MatRowDef,
     MatTable,
     MatHeaderCellDef,
-    NgSwitchCase,
     NgIf,
-    MatProgressSpinner
   ],
   templateUrl: './crl-page.component.html',
   styleUrl: './crl-page.component.css'

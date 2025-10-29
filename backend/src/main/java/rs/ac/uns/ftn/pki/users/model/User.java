@@ -6,9 +6,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
+import java.util.*;
 
 @Entity
 @Table(name = "app_user", uniqueConstraints = {
@@ -40,94 +38,67 @@ public class User extends BaseEntity {
     @NotBlank
     private String hashedPassword;
 
-    @NotBlank
+    @Column(length = 2048)
     private String refreshToken;
 
     private OffsetDateTime refreshTokenExpiresAt;
 
-    @NotEmpty
+    /** Certificates this user ISSUED (inverse side; FK lives on Certificate.signedBy). */
     @OneToMany(mappedBy = "signedBy", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Certificate> myCertificates = new ArrayList<>();
+    private List<Certificate> issuedCertificates = new ArrayList<>();
 
-    // --- Getters and Setters ---
+    /** Certificates ASSIGNED to this user (ownership/usable by this CA). */
+    @ManyToMany
+    @JoinTable(
+            name = "user_assigned_certificates",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "certificate_id")
+    )
+    private Set<Certificate> assignedCertificates = new HashSet<>();
 
-    public Role getRole() {
-        return role;
-    }
+    // --- Getters / Setters ---
 
-    public void setRole(Role role) {
-        this.role = role;
-    }
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
 
-    public String getName() {
-        return name;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getSurname() { return surname; }
+    public void setSurname(String surname) { this.surname = surname; }
 
-    public String getSurname() {
-        return surname;
-    }
+    public String getOrganization() { return organization; }
+    public void setOrganization(String organization) { this.organization = organization; }
 
-    public void setSurname(String surname) {
-        this.surname = surname;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public String getOrganization() {
-        return organization;
-    }
+    public Boolean getEmailConfirmed() { return emailConfirmed; }
+    public void setEmailConfirmed(Boolean emailConfirmed) { this.emailConfirmed = emailConfirmed; }
 
-    public void setOrganization(String organization) {
-        this.organization = organization;
-    }
+    public String getHashedPassword() { return hashedPassword; }
+    public void setHashedPassword(String hashedPassword) { this.hashedPassword = hashedPassword; }
 
-    public String getEmail() {
-        return email;
-    }
+    public String getRefreshToken() { return refreshToken; }
+    public void setRefreshToken(String refreshToken) { this.refreshToken = refreshToken; }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public OffsetDateTime getRefreshTokenExpiresAt() { return refreshTokenExpiresAt; }
+    public void setRefreshTokenExpiresAt(OffsetDateTime refreshTokenExpiresAt) { this.refreshTokenExpiresAt = refreshTokenExpiresAt; }
 
-    public Boolean getEmailConfirmed() {
-        return emailConfirmed;
-    }
+    public List<Certificate> getIssuedCertificates() { return issuedCertificates; }
+    public void setIssuedCertificates(List<Certificate> issuedCertificates) { this.issuedCertificates = issuedCertificates; }
 
-    public void setEmailConfirmed(Boolean emailConfirmed) {
-        this.emailConfirmed = emailConfirmed;
-    }
+    public Set<Certificate> getAssignedCertificates() { return assignedCertificates; }
+    public void setAssignedCertificates(Set<Certificate> assignedCertificates) { this.assignedCertificates = assignedCertificates; }
 
-    public String getHashedPassword() {
-        return hashedPassword;
-    }
+    // --- Optional compatibility shim (keeps old code compiling) ---
+    /** @deprecated Use getIssuedCertificates() instead. */
+    @Deprecated
+    @Transient
+    public List<Certificate> getMyCertificates() { return issuedCertificates; }
 
-    public void setHashedPassword(String hashedPassword) {
-        this.hashedPassword = hashedPassword;
-    }
-
-    public String getRefreshToken() {
-        return refreshToken;
-    }
-
-    public void setRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
-    }
-
-    public OffsetDateTime getRefreshTokenExpiresAt() {
-        return refreshTokenExpiresAt;
-    }
-
-    public void setRefreshTokenExpiresAt(OffsetDateTime refreshTokenExpiresAt) {
-        this.refreshTokenExpiresAt = refreshTokenExpiresAt;
-    }
-
-    public List<Certificate> getMyCertificates() {
-        return myCertificates;
-    }
-
-    public void setMyCertificates(List<Certificate> myCertificates) {
-        this.myCertificates = myCertificates;
-    }
+    /** @deprecated Use setIssuedCertificates(...) instead. */
+    @Deprecated
+    @Transient
+    public void setMyCertificates(List<Certificate> certs) { this.issuedCertificates = certs; }
 }

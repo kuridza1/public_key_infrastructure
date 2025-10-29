@@ -1,5 +1,12 @@
 <div class="container">
+  
+  <div class="create-button">
+    <button (click)="openRegisterDialog()" class="blue-button align-icon">
+      <span class="material-symbols-rounded">add</span> Create new CA user
+    </button>
+  </div>
   <div class="table-header table-width">
+  
     <mat-table [dataSource]="caUsersDataSource">
 
       <ng-container matColumnDef="name">
@@ -64,9 +71,4 @@
     </mat-table>
   </div>
 
-  <div class="create-button">
-    <button (click)="openRegisterDialog()" class="blue-button align-icon">
-      <span class="material-symbols-rounded">add</span> Create new CA user
-    </button>
-  </div>
 </div>

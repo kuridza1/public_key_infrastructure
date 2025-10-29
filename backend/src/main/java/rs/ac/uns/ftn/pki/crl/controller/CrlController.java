@@ -30,10 +30,10 @@ public class CrlController {
     @PostMapping("/revoke")
     public ResponseEntity<?> revokeCertificate(
             @RequestBody RevokeCertificateRequest req,
-            @RequestHeader("X-Requester-Id") UUID requesterId,
-            @RequestHeader("X-Requester-Role") Role requesterRole) {
+            @RequestHeader("userId") String requesterId,
+            @RequestHeader("role") Role requesterRole) {
         try {
-            crlService.revokeCertificate(req, requesterId, requesterRole);
+            crlService.revokeCertificate(req, UUID.fromString(requesterId), requesterRole);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

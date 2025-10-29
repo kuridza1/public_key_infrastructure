@@ -1,6 +1,7 @@
 package rs.ac.uns.ftn.pki.certificates.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.pki.certificates.dtos.*;
 import rs.ac.uns.ftn.pki.certificates.service.CertificateService;
@@ -40,6 +41,7 @@ public class CertificateController {
     }
 
     @GetMapping("/get-all-valid-signing")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getAllValidSigningCertificates() {
         try {
             return ResponseEntity.ok(certificateService.getAllValidSigningCertificates());
@@ -88,6 +90,29 @@ public class CertificateController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    // CA: my valid signing certs (today), based on signedBy=user
+    @GetMapping("/valid-signing/mine")
+    @PreAuthorize("hasRole('CaUser')")
+    public ResponseEntity<?> getMyValidSigningCertificates(@RequestHeader("userId") String userId) {
+        try {
+            return ResponseEntity.ok(certificateService.getMyValidSigningCertificates(userId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // Admin: all valid signing certs (today)
+    @GetMapping("/valid-signing/all")
+    @PreAuthorize("hasRole('Admin')")
+    public ResponseEntity<?> getAllValidSigningCertificatesFast() {
+        try {
+            return ResponseEntity.ok(certificateService.getAllValidSigningCertificatesFast());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 
     @GetMapping("/get-certificates-signed-by-me")
     @PreAuthorize("hasRole('CaUser')")
