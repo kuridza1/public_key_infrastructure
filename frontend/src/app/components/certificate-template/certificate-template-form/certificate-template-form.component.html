@@ -1,0 +1,133 @@
+<div class="template-form-overlay" (click)="onCancel()">
+  <div class="template-form-container" (click)="$event.stopPropagation()">
+    <div class="form-header">
+      <h3>{{ template ? 'Edit Template' : 'Create New Template' }}</h3>
+      <button (click)="onCancel()" class="btn-close">&times;</button>
+    </div>
+
+    <form [formGroup]="templateForm" (ngSubmit)="onSubmit()" class="form-content">
+      <div class="form-group">
+        <label for="name">Template Name *</label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          class="form-control"
+          placeholder="Enter template name"
+        >
+        <div *ngIf="templateForm.get('name')?.invalid && templateForm.get('name')?.touched" 
+             class="error-message">
+          Template name is required
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="caIssuerId">CA Issuer *</label>
+        <select
+          id="caIssuerId"
+          formControlName="caIssuerId"
+          class="form-control"
+        >
+          <option value="">Select CA Certificate</option>
+            <option *ngFor="let cert of caCertificates" [value]="cert.serialNumber">
+            {{ cert.issuedTo }} ({{ cert.prettySerialNumber }})
+            </option>
+        </select>
+        <div *ngIf="templateForm.get('caIssuerId')?.invalid && templateForm.get('caIssuerId')?.touched" 
+             class="error-message">
+          CA Issuer is required
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="commonNameRegex">Common Name Regex</label>
+        <input
+          id="commonNameRegex"
+          type="text"
+          formControlName="commonNameRegex"
+          class="form-control"
+          placeholder="e.g., .*\\.company\\.com$"
+        >
+        <small>Regular expression to validate Common Names</small>
+      </div>
+
+      <div class="form-group">
+        <label for="sanRegex">SAN Regex</label>
+        <input
+          id="sanRegex"
+          type="text"
+          formControlName="sanRegex"
+          class="form-control"
+          placeholder="e.g., .*\\.company\\.com$"
+        >
+        <small>Regular expression to validate Subject Alternative Names</small>
+      </div>
+
+      <div class="form-group">
+        <label for="maxTtlDays">Maximum Validity (Days)</label>
+        <input
+          id="maxTtlDays"
+          type="number"
+          formControlName="maxTtlDays"
+          class="form-control"
+          min="1"
+          max="3650"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="keyUsage">Key Usage</label>
+        <input
+          id="keyUsage"
+          type="text"
+          formControlName="keyUsage"
+          class="form-control"
+          placeholder="e.g., digitalSignature,keyEncipherment"
+        >
+        <small>Comma-separated key usage values</small>
+      </div>
+
+      <div class="form-group">
+        <label for="extendedKeyUsage">Extended Key Usage</label>
+        <input
+          id="extendedKeyUsage"
+          type="text"
+          formControlName="extendedKeyUsage"
+          class="form-control"
+          placeholder="e.g., serverAuth,clientAuth"
+        >
+        <small>Comma-separated extended key usage values</small>
+      </div>
+
+      <div class="form-group">
+        <label for="basicConstraints">Basic Constraints</label>
+        <input
+          id="basicConstraints"
+          type="text"
+          formControlName="basicConstraints"
+          class="form-control"
+          placeholder="e.g., CA:true,pathlen:0"
+        >
+        <small>Format: CA:true/false,pathlen:number</small>
+      </div>
+
+      <div class="form-actions">
+        <button
+          type="button"
+          (click)="onCancel()"
+          class="btn btn-secondary"
+          [disabled]="submitting"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="templateForm.invalid || submitting"
+        >
+          {{ submitting ? 'Saving...' : (template ? 'Update' : 'Create') }} Template
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
