@@ -77,15 +77,13 @@ export class IssueCertificateComponent implements OnInit {
     {value: 'certificatePolicies', label: 'Certificate Policies'}
   ];
 
-  ngOnInit() {
-    if (this.auth.role === 'CaUser') {
-      this.loadCaSigningCertificates();
-      this.loadTemplatesForCa();
-    } else if (this.auth.role === 'Admin') {
-      this.loadAdminSigningCertificates();
-      this.loadTemplatesForCa();
-    }
+ngOnInit() {
+  if (this.auth.role === 'CaUser') {
+    this.loadCaSigningCertificates();
+  } else if (this.auth.role === 'Admin') {
+    this.loadAdminSigningCertificates();
   }
+}
 
   loadCaSigningCertificates() {
     this.signingCertificates = []
@@ -125,34 +123,113 @@ export class IssueCertificateComponent implements OnInit {
 
 onSigningCertificateChange() {
   if (this.useTemplate && this.signingCertificate && typeof this.signingCertificate !== 'string') {
-    // Use serialNumber instead of id since your Certificate interface doesn't have id
-    this.loadTemplatesForCa();
+    // Load templates for the SELECTED CA CERTIFICATE, not the user
+    this.loadTemplatesForCa(this.signingCertificate);
   } else {
     this.templates = [];
     this.selectedTemplate = null;
   }
 }
 
-loadTemplatesForCa() {
-  this.templateService.getTemplates().subscribe({
-    next: (templates) => {
-      console.log('All templates received:', templates);
-
-      this.templates = templates;
-
-      console.log('Setting templates (no filter):', this.templates);
-
-      if (this.templates.length === 0) {
-        this.toast.info('No Templates', 'No templates available in system');
-      } else {
-        this.toast.success('Templates Loaded', `Found ${this.templates.length} template(s)`);
+loadTemplatesForCa(selectedCertificate: Certificate) {
+  if (this.auth.role === 'CaUser') {
+    // For CA Users: Get templates for this specific CA certificate
+    this.templateService.getTemplatesForCa(selectedCertificate.serialNumber).subscribe({
+      next: (templates) => {
+        this.templates = templates;
+        console.log(templates)
+        this.checkTemplatesAvailability();
+      },
+      error: (error) => {
+        console.error('Error loading templates:', error);
+        this.toast.error('Error', 'Unable to load templates');
       }
-    },
-    error: (error) => {
-      console.error('Error loading templates:', error);
-      this.toast.error('Error', 'Unable to load templates');
+    });
+  } else if (this.auth.role === 'Admin') {
+    // For Admins: Get all templates (or filter by CA if desired)
+    this.templateService.getTemplates().subscribe({
+      next: (templates) => {
+        // Optional: Filter by selected CA for admins too
+        this.templates = templates
+        this.checkTemplatesAvailability();
+      },
+      error: (error) => {
+        console.error('Error loading templates:', error);
+        this.toast.error('Error', 'Unable to load templates');
+      }
+    });
+  }
+}
+
+private doesTemplateMatchCertificate(template: TemplateResponse, certificate: Certificate): boolean {
+  // Parse the certificate's issuedTo field to extract components
+  const certComponents = this.parseIssuedTo(certificate.issuedTo);
+  
+  // Build a normalized issuer name from certificate components
+  const certIssuerNormalized = this.buildIssuerName(
+    certComponents.cn,
+    certComponents.o, 
+    certComponents.ou,
+    certComponents.email,
+    certComponents.c
+  );
+  
+  // Compare with template's caIssuerName
+  return template.caIssuerName === certIssuerNormalized;
+}
+
+// Helper to parse issuedTo field (format: "CN\nO, OU\nSE")
+private parseIssuedTo(issuedTo: string): { cn: string, o: string, ou: string, email: string, c: string } {
+  const lines = issuedTo.split('\n');
+  const result = { cn: '', o: '', ou: '', email: '', c: '' };
+  
+  lines.forEach(line => {
+    line = line.trim();
+    
+    // First line should be CN
+    if (line.startsWith('CN') && !result.cn) {
+      result.cn = line.replace('CN', '').trim();
+    } 
+    // Second line contains O and OU
+    else if (line.includes('O') && line.includes(',')) {
+      const parts = line.split(',');
+      parts.forEach(part => {
+        const trimmed = part.trim();
+        if (trimmed.startsWith('O') && !result.o) {
+          result.o = trimmed.replace('O', '').trim();
+        } else if (trimmed.startsWith('OU') && !result.ou) {
+          result.ou = trimmed.replace('OU', '').trim();
+        }
+      });
+    }
+    // Last line might be country or other components
+    else if (line.length === 2) {
+      // Assuming 2-letter country code
+      result.c = line;
     }
   });
+  
+  return result;
+}
+
+// Helper to build issuer name in template format
+private buildIssuerName(cn: string, o: string, ou: string, email: string, country: string): string {
+  const parts = [];
+  if (cn) parts.push(`CN=${cn}`);
+  if (o) parts.push(`O=${o}`);
+  if (ou) parts.push(`OU=${ou}`);
+  if (email) parts.push(`E=${email}`);
+  if (country) parts.push(`C=${country}`);
+  
+  return parts.join(',');
+}
+
+private checkTemplatesAvailability() {
+  if (this.templates.length === 0) {
+    this.toast.info('No Templates', 'No templates available for this CA certificate');
+  } else {
+    this.toast.success('Templates Loaded', `Found ${this.templates.length} template(s)`);
+  }
 }
 
 onUseTemplateChange() {
@@ -160,7 +237,10 @@ onUseTemplateChange() {
     this.selectedTemplate = null;
     this.templates = [];
   } else if (this.signingCertificate && typeof this.signingCertificate !== 'string') {
-    this.loadTemplatesForCa();
+    // Load templates for the selected CA certificate
+    this.loadTemplatesForCa(this.signingCertificate);
+  } else {
+    this.toast.info('Template Usage', 'Please select a CA certificate first');
   }
 }
 onTemplateChange() {
