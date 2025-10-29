@@ -228,10 +228,9 @@
       <button class="blue-button large-btn" type="button" (click)="onReject()">
         Reject
       </button>
-      <button class="blue-button large-btn" type="submit"  *ngIf=!certForm.invalid>
+      <button class="blue-button large-btn" type="submit" [disabled]="certForm.invalid">
         Approve
       </button>
     </div>
-    <div style="color:#D991BA" *ngIf=certForm.invalid>This request is invalid and can't be approved. </div>
   </form>
 </div>

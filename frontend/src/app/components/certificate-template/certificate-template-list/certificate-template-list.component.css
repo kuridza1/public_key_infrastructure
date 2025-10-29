@@ -1,0 +1,213 @@
+/* Host layout */
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: var(--background);
+}
+
+.certificate-templates-container {
+  width: 100%;
+}
+
+/* Table width control */
+.table-width {
+  min-width: max(1300px, 70vw);
+  max-width: min(1400px, 70vw);
+}
+
+/* Outer container */
+.container {
+  background-color: var(--gray-100);
+  padding: 24px 24px 40px 24px;
+  border-radius: 24px;
+  margin: 72px 0 140px 0;
+}
+
+/* Header section */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--gray-300);
+}
+
+.header h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.5rem;
+}
+
+/* Fixed-width text truncation */
+.fp {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+/* === Custom column widths for Angular Material table === */
+
+mat-header-cell.name,
+mat-cell.name {
+  flex: 0 0 18%;
+  padding-left: 16px;
+}
+
+mat-header-cell.caIssuer,
+mat-cell.caIssuer {
+  flex: 0 0 20%;
+}
+
+mat-header-cell.commonNameRegex,
+mat-cell.commonNameRegex {
+  flex: 0 0 15%;
+}
+
+mat-header-cell.maxTtl,
+mat-cell.maxTtl {
+  flex: 0 0 10%;
+}
+
+mat-header-cell.keyUsage,
+mat-cell.keyUsage {
+  flex: 0 0 15%;
+}
+
+mat-header-cell.createdBy,
+mat-cell.createdBy {
+  flex: 0 0 12%;
+}
+
+mat-header-cell.createdAt,
+mat-cell.createdAt {
+  flex: 0 0 15%;
+}
+
+mat-header-cell.actions,
+mat-cell.actions {
+  flex: 0 0 10%;
+  justify-content: flex-end;
+  padding-right: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+/* Table header styling */
+.table-header {
+  background-color: var(--gray-200);
+  border-radius: 8px 8px 0 0;
+}
+
+.table-header mat-header-cell {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+/* Table body styling */
+mat-cell {
+  color: var(--gray-400);
+  font-size: 0.9rem;
+}
+
+mat-row {
+  border-bottom: 1px solid var(--gray-300);
+}
+
+mat-row:hover {
+  background-color: var(--gray-200);
+}
+
+/* Action buttons */
+mat-cell.actions button {
+  color: var(--gray-400);
+  transition: color 0.2s;
+}
+
+mat-cell.actions button:hover {
+  color: var(--primary);
+}
+
+/* Blue button styling */
+.blue-button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.blue-button:hover {
+  background-color: var(--primary-dark);
+}
+
+.blue-button:disabled {
+  background-color: var(--gray-300);
+  cursor: not-allowed;
+}
+
+/* Loading state */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  color: var(--gray-400);
+  font-size: 1.1rem;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--gray-400);
+}
+
+.empty-state p {
+  margin-bottom: 20px;
+  font-size: 1.1rem;
+}
+
+/* Error state */
+.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 12px;
+  border-radius: 4px;
+  border: 1px solid #f5c6cb;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Material icons */
+.material-symbols-rounded {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+/* Ensure table has proper spacing */
+mat-table {
+  width: 100%;
+}
+
+/* Header cell alignment */
+mat-header-cell {
+  display: flex;
+  align-items: center;
+}
+
+/* Cell alignment */
+mat-cell {
+  display: flex;
+  align-items: center;
+}

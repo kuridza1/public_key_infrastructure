@@ -22,18 +22,17 @@ public record IssueCertificateRequest(
         ListOfNames issuerAlternativeNames,
         NamesConstraintsValue nameConstraints,
         BasicConstraintsValue basicConstraints,
-        CertificatePolicy certificatePolicy
+        CertificatePolicy certificatePolicy,
+        UUID templateId,
+        Map<String, Object> customExtensions
 ) {
     public X509Name getX509Name() {
-        // Using the order-aware constructor with Vector
         Vector<ASN1ObjectIdentifier> oids = new Vector<>();
         Vector<String> values = new Vector<>();
 
-        // Add required Common Name
         oids.add(X509Name.CN);
         values.add(commonName);
 
-        // Add optional fields if not empty
         addOptionalField(oids, values, X509Name.O, organization);
         addOptionalField(oids, values, X509Name.OU, organizationalUnit);
         addOptionalField(oids, values, X509Name.EmailAddress, email);
@@ -48,5 +47,15 @@ public record IssueCertificateRequest(
             oids.add(oid);
             values.add(value);
         }
+    }
+
+    public boolean isUsingTemplate() {
+        return templateId != null;
+    }
+
+    public String getSanAsString() {
+        if (subjectAlternativeNames == null) return "";
+        // Implement based on your ListOfNames structure
+        return subjectAlternativeNames.toString(); // Adjust as needed
     }
 }

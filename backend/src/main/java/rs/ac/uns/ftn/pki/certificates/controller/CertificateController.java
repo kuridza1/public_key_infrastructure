@@ -91,29 +91,6 @@ public class CertificateController {
         }
     }
 
-    // CA: my valid signing certs (today), based on signedBy=user
-    @GetMapping("/valid-signing/mine")
-    @PreAuthorize("hasRole('CaUser')")
-    public ResponseEntity<?> getMyValidSigningCertificates(@RequestHeader("userId") String userId) {
-        try {
-            return ResponseEntity.ok(certificateService.getMyValidSigningCertificates(userId));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    // Admin: all valid signing certs (today)
-    @GetMapping("/valid-signing/all")
-    @PreAuthorize("hasRole('Admin')")
-    public ResponseEntity<?> getAllValidSigningCertificatesFast() {
-        try {
-            return ResponseEntity.ok(certificateService.getAllValidSigningCertificatesFast());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-
     @GetMapping("/get-certificates-signed-by-me")
     @PreAuthorize("hasRole('CaUser')")
     public ResponseEntity<?> getCertificatesSignedByMe(@RequestHeader("userId") String userId) {

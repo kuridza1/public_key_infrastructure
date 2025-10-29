@@ -1,0 +1,134 @@
+<div class="certificate-templates-container">
+  <div *ngIf="loading" class="loading">
+    Loading templates...
+  </div>
+
+  <div *ngIf="!loading" class="container">
+    <!-- Header with title and create button -->
+    <div class="header">
+      <h2>Certificate Templates</h2>
+      <button (click)="createTemplate()" class="button">
+        Create New Template
+      </button>
+    </div>
+
+    <!-- Table header -->
+    <div class="table-header table-width">
+      <mat-table [dataSource]="templatesDataSource">
+
+        <ng-container matColumnDef="name">
+          <mat-header-cell class="name" *matHeaderCellDef>Template Name</mat-header-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="caIssuer">
+          <mat-header-cell class="caIssuer" *matHeaderCellDef>CA Issuer</mat-header-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="commonNameRegex">
+          <mat-header-cell class="commonNameRegex" *matHeaderCellDef>Common Name Pattern</mat-header-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="maxTtl">
+          <mat-header-cell class="maxTtl" *matHeaderCellDef>Max Validity</mat-header-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="keyUsage">
+          <mat-header-cell class="keyUsage" *matHeaderCellDef>Key Usage</mat-header-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="createdBy">
+          <mat-header-cell class="createdBy" *matHeaderCellDef>Created By</mat-header-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="createdAt">
+          <mat-header-cell class="createdAt" *matHeaderCellDef>Created At</mat-header-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <mat-header-cell class="actions" *matHeaderCellDef></mat-header-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      </mat-table>
+    </div>
+
+    <!-- Table body -->
+    <div class="table-width">
+      <mat-table [dataSource]="templatesDataSource">
+        <ng-container matColumnDef="name">
+          <mat-cell class="name" *matCellDef="let template">
+            <p class="fp">{{ template.name }}</p>
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="caIssuer">
+          <mat-cell class="caIssuer" *matCellDef="let template">
+            <p class="fp">{{ template.caIssuerName }}</p>
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="commonNameRegex">
+          <mat-cell class="commonNameRegex" *matCellDef="let template">
+            <p class="fp">{{ template.commonNameRegex || 'Any' }}</p>
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="maxTtl">
+          <mat-cell class="maxTtl" *matCellDef="let template">
+            {{ template.maxTtlDays ? (template.maxTtlDays + ' days') : 'Unlimited' }}
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="keyUsage">
+          <mat-cell class="keyUsage" *matCellDef="let template">
+            <p class="fp">{{ template.keyUsage || 'Default' }}</p>
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="createdBy">
+          <mat-cell class="createdBy" *matCellDef="let template">
+            <p class="fp">{{ template.createdBy }}</p>
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="createdAt">
+          <mat-cell class="createdAt" *matCellDef="let template">
+            {{ template.createdAt | date:'medium' }}
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <mat-cell class="actions" *matCellDef="let template">
+            <button (click)="useTemplate(template)" mat-icon-button title="Use Template">
+              <span class="material-symbols-rounded">play_arrow</span>
+            </button>
+            <button (click)="editTemplate(template)" mat-icon-button title="Edit Template">
+              <span class="material-symbols-rounded">edit</span>
+            </button>
+            <button (click)="deleteTemplate(template)" mat-icon-button title="Delete Template">
+              <span class="material-symbols-rounded">delete</span>
+            </button>
+          </mat-cell>
+        </ng-container>
+
+        <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+      </mat-table>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="templatesDataSource.length === 0" class="empty-state">
+      <p>No certificate templates found.</p>
+      <button (click)="createTemplate()" class="button">
+        Create Your First Template
+      </button>
+    </div>
+  </div>
+
+  <!-- Create/Edit Template Form -->
+  <app-certificate-template-form
+    *ngIf="showCreateForm"
+    [template]="editingTemplate"
+    (saved)="onTemplateSaved()"
+    (closed)="onFormClosed()"
+  ></app-certificate-template-form>
+</div>
