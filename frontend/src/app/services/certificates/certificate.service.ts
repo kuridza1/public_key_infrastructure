@@ -29,7 +29,7 @@ export class CertificatesService {
 
   issueCertificate(createCertificate: CreateCertificate): Observable<string> {
     const headers = this.createHeaders();
-    return this.httpClient.post<string>(`${this.urlCore}/issue`, createCertificate, {
+    return this.httpClient.post<string>(`${this.urlCore}/issue`, createCertificate, { 
       headers: headers
     });
   }
@@ -75,9 +75,15 @@ export class CertificatesService {
 
   downloadCertificate(downloadCertificateRequest: DownloadCertificateRequest): Observable<Blob> {
     const headers = this.createHeaders();
-    return this.httpClient.post(`${this.urlCore}/download`, downloadCertificateRequest, {
+    return this.httpClient.post(`${this.urlCore}/download`, downloadCertificateRequest, { 
       headers: headers,
-      responseType: 'blob'
+      responseType: 'blob' 
+    });
+  }
+  issueCertificateWithTemplate(createCertificate: CreateCertificate): Observable<string> {
+    const headers = this.createHeaders();
+    return this.httpClient.post<string>(`${this.urlCore}/issue-with-template`, createCertificate, { 
+      headers: headers
     });
   }
 }
