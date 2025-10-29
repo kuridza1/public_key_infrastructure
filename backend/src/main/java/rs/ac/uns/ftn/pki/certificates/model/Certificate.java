@@ -43,9 +43,8 @@ public class Certificate extends BaseEntity {
     private OffsetDateTime notAfter;
 
     @NotBlank
-    @Lob
-    @Column(nullable = false)
-    private String encodedValue; // Base64-encoded DER (X.509)
+    @Column(nullable = false, columnDefinition = "text")
+    private String encodedValue;
 
     @NotNull
     @Column(nullable = false)

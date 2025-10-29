@@ -41,14 +41,21 @@ import java.util.stream.Collectors;
 public class CertificateService {
 
     private final IUnifiedDbContext db;
-
+    private final CertificateBuilder builder;   // builder bean
+    private final Pkcs12Manager pkcs12Manager;  // keystore manager
+    private final PrivateKeyVault privateKeyVault;
+  
     @Lazy
     @Autowired
     private CertificateTemplateService templateService;
-
-    // Remove templateService from constructor
-    public CertificateService(IUnifiedDbContext db) {
+  
+    public CertificateService(IUnifiedDbContext db,
+                              CertificateBuilder builder,
+                              Pkcs12Manager pkcs12Manager, PrivateKeyVault privateKeyVault) {
         this.db = db;
+        this.builder = builder;
+        this.pkcs12Manager = pkcs12Manager;
+        this.privateKeyVault = privateKeyVault;
     }
 
     // Your existing createCertificate method remains the same
@@ -111,6 +118,11 @@ public class CertificateService {
 
         Certificate certificate = CertificateBuilder.createCertificate(
                 createCertificateRequest, subjectPublicKey, subjectPrivateKey, signingCertificate, user);
+
+        // private key encription
+        UUID orgId = user.getId();
+        privateKeyVault.storeForCertificate(orgId, certificate.getSerialNumber(), subjectPrivateKey);
+        certificate.setPrivateKey(null);
 
         if (requestingUser.getRole() == Role.EeUser ||
                 (requestingUser.getRole() == Role.CaUser && certificate.getCanSign())) {
