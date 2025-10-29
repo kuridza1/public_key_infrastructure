@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.pki.security.*;
 
 import java.math.BigInteger;
+import java.security.PrivateKey;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -58,7 +59,7 @@ public class PrivateKeyVault {
     }
 
     /** Čitanje (dekripcija) – vraća PKCS#8 DER. */
-    public byte[] loadForCertificate(UUID orgId, BigInteger certSerial) {
+    public PrivateKey loadForCertificate(UUID orgId, BigInteger certSerial) {
         var row = jdbc.queryForMap(
                 "SELECT key_version, alg, cek_iv, ciphertext FROM private_keys WHERE owner_org_id=? AND cert_serial=?",
                 orgId, certSerial
@@ -71,7 +72,17 @@ public class PrivateKeyVault {
         var ok = orgKeys.getOrCreateOrgKek(orgId.toString()); // dobije KEK (po default najnoviji)
         // Ako želiš striktno verzionisanje: izvuci konkretan orgKEK po ver (dodaš metodu u OrgKeyStore)
         byte[] aad = ("org:"+orgId+"|serial:"+certSerial.toString(10)+"|alg:"+alg).getBytes();
-        return aes.decrypt(ok.key(), iv, ct, aad);
+        byte[] pkcs8 = aes.decrypt(ok.key(), iv, ct, aad);
+
+        try {
+            var pki = org.bouncycastle.asn1.pkcs.PrivateKeyInfo.getInstance(pkcs8);
+            return new org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter()
+                    .setProvider("BC")
+                    .getPrivateKey(pki);
+            // (or use KeyFactory shown in Option B)
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to deserialize PKCS#8 from vault", e);
+        }
     }
 }
 
