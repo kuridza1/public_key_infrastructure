@@ -41,6 +41,7 @@ export class NavigationComponent implements OnInit {
     {label: 'Request Certificate', icon: 'add_notes', link: '/request-certificate', roles: ['EeUser']},
     {label: 'Manage CA users', icon: 'group', link: '/manage-ca-users', roles: ['Admin']},
     {label: 'CRL', icon: 'contract_delete', link: '/crl', roles: ['Admin', 'CaUser', 'EeUser']},
+    {label: 'Templates', icon: 'contract_delete', link: '/certificate-templates', roles: ['Admin', 'CaUser']},
     {label: 'Logout', icon: 'logout', roles: ['EeUser', 'CaUser', 'Admin'], class: 'logout', action: () => this.logout()},
   ];
 
