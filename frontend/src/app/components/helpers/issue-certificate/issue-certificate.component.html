@@ -5,6 +5,44 @@
     You currently don't have any certificates that you can use to sign a new certificate.
   </div>
   <form *ngIf="!noSigningCertificates" class="certificate-form" #certForm="ngForm" (ngSubmit)="onSubmit(certForm)">
+        <div class="form-section">
+      <h3>Template (Optional)</h3>
+      
+      <div class="form-group">
+        <mat-checkbox [(ngModel)]="useTemplate" (change)="onUseTemplateChange()" name="useTemplate">
+          Use Certificate Template
+        </mat-checkbox>
+      </div>
+
+      <div *ngIf="useTemplate" class="template-section">
+        <div class="form-group">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Select Template</mat-label>
+            <mat-select [(ngModel)]="selectedTemplate" (selectionChange)="onTemplateChange()" name="template">
+              <mat-option value="">No Template Selected</mat-option>
+              <mat-option *ngFor="let template of templates" [value]="template">
+                {{ template.name }} - {{ template.caIssuerName }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div *ngIf="selectedTemplate" class="template-info">
+          <h4>Template Details:</h4>
+          <div class="template-details">
+            <p><strong>Common Name Pattern:</strong> {{ selectedTemplate.commonNameRegex || 'Any' }}</p>
+            <p><strong>Max Validity:</strong> {{ selectedTemplate.maxTtlDays || 'Unlimited' }} days</p>
+            <p><strong>Key Usage:</strong> {{ selectedTemplate.keyUsage || 'Default' }}</p>
+            <p><strong>Extended Key Usage:</strong> {{ selectedTemplate.extendedKeyUsage || 'Default' }}</p>
+            <p><strong>Basic Constraints:</strong> {{ selectedTemplate.basicConstraints || 'Default' }}</p>
+          </div>
+        </div>
+
+        <div *ngIf="useTemplate && templates.length === 0" class="no-templates">
+          <p>No templates available for the selected CA certificate.</p>
+        </div>
+      </div>
+    </div>
     <div class="row">
       <mat-form-field appearance="outline">
         <mat-label>Signing certificate</mat-label>
