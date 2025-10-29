@@ -230,6 +230,8 @@ public class CertificateService {
 
     // ===================== DOWNLOAD (PKCS#12 EXPORT) =====================
 
+    // src/main/java/.../certificates/service/CertificateService.java
+
     @Transactional(readOnly = true)
     public byte[] getCertificateWithPasswordAsPkcs12(DownloadCertificateRequest request,
                                                      UUID requesterId, Role requesterRole) throws Exception {
@@ -247,19 +249,27 @@ public class CertificateService {
             throw new RuntimeException("You cannot download certificates that aren't yours!");
         }
 
-        // Build trust chain
+        // Build trust chain (unchanged)
         List<X509Certificate> chain = buildChain(eeCert);
         if (chain.isEmpty()) throw new RuntimeException("No certificates in chain!");
 
-        // Optional: export with private key if we have a keystore reference
+        // === NEW: try DB vault first ===
         java.security.PrivateKey privateKey = null;
-        if (eeCert.getKeystorePath() != null && eeCert.getKeystoreAlias() != null) {
-            try {
-                privateKey = pkcs12Manager.loadPrivateKey(eeCert.getKeystorePath(), eeCert.getKeystoreAlias());
-            } catch (Exception ignored) { /* fall back to cert-only export */ }
+        try {
+            UUID orgId = user.getId(); // same helper as above
+            privateKey = privateKeyVault.loadForCertificate(orgId, eeCert.getSerialNumber());
+        } catch (Exception ignored) {
+            // ignore, we’ll fallback to filesystem if needed
         }
 
-        // Create PKCS#12
+        // === Fallback to old PKCS#12 on disk ===
+        if (privateKey == null && eeCert.getKeystorePath() != null && eeCert.getKeystoreAlias() != null) {
+            try {
+                privateKey = pkcs12Manager.loadPrivateKey(eeCert.getKeystorePath(), eeCert.getKeystoreAlias());
+            } catch (Exception ignored) { /* cert-only export below */ }
+        }
+
+        // Build the P12 to return
         KeyStore p12 = KeyStore.getInstance("PKCS12");
         p12.load(null, null);
         String alias = chain.get(0).getSubjectX500Principal().getName();
@@ -268,6 +278,7 @@ public class CertificateService {
             p12.setKeyEntry(alias, privateKey, request.getPassword().toCharArray(),
                     chain.toArray(new X509Certificate[0]));
         } else {
+            // cert-only export (typical for CSR EE certs)
             p12.setCertificateEntry(alias, chain.get(0));
             for (int i = 1; i < chain.size(); i++) {
                 p12.setCertificateEntry(alias + "-chain-" + i, chain.get(i));
@@ -279,6 +290,7 @@ public class CertificateService {
             return baos.toByteArray();
         }
     }
+
 
     // ===================== HELPERS =====================
 
