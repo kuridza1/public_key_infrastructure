@@ -12,6 +12,7 @@ import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.springframework.stereotype.Component;
 import rs.ac.uns.ftn.pki.certificates.dtos.IssueCertificateRequest;
 import rs.ac.uns.ftn.pki.certificates.model.Certificate;
 import rs.ac.uns.ftn.pki.certificates.model.extensionValues.ExtendedKeyUsageValue;
@@ -26,6 +27,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.*;
 
+@Component
 public class CertificateBuilder {
 
     public static Certificate createCertificate(IssueCertificateRequest request,

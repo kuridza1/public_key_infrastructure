@@ -19,6 +19,7 @@ import rs.ac.uns.ftn.pki.certificates.model.CertificateStatus;
 import rs.ac.uns.ftn.pki.certificates.model.extensionValues.BasicConstraintsValue;
 import rs.ac.uns.ftn.pki.certificates.model.extensionValues.ExtendedKeyUsageValue;
 import rs.ac.uns.ftn.pki.certificates.model.extensionValues.KeyUsageValue;
+import rs.ac.uns.ftn.pki.certificates.utils.Pkcs12Manager;
 import rs.ac.uns.ftn.pki.dbContext.IUnifiedDbContext;
 import rs.ac.uns.ftn.pki.certificates.utils.CertificateBuilder;
 import rs.ac.uns.ftn.pki.template.CertificateTemplate;
