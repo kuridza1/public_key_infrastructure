@@ -17,6 +17,8 @@ export interface CreateCertificate {
   nameConstraints?: NamesConstraintsValue;
   basicConstraints?: BasicConstraintsValue;
   certificatePolicy?: CertificatePolicy;
+  templateId?: string;
+  customExtensions?: { [key: string]: any };
 }
 
 export interface ListOfNames {

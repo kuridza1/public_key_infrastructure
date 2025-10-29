@@ -173,3 +173,64 @@
   align-items: center;
   font-size: xx-large;
 }
+
+/* Template section styles */
+.form-section {
+  margin: 20px 0;
+  padding: 20px;
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  background-color: var(--gray-100);
+}
+
+.form-section h3 {
+  margin: 0 0 16px 0;
+  color: var(--text);
+  font-size: 1.2rem;
+}
+
+.template-section {
+  margin-top: 16px;
+}
+
+.template-info {
+  margin-top: 16px;
+  padding: 16px;
+  background-color: var(--gray-200);
+  border-radius: 4px;
+  border-left: 4px solid var(--primary);
+}
+
+.template-info h4 {
+  margin: 0 0 12px 0;
+  color: var(--text);
+  font-size: 1.1rem;
+}
+
+.template-details p {
+  margin: 8px 0;
+  font-size: 0.9rem;
+  color: var(--gray-400);
+}
+
+.template-details strong {
+  color: var(--text);
+}
+
+.no-templates {
+  padding: 16px;
+  background-color: var(--gray-200);
+  border-radius: 4px;
+  text-align: center;
+  color: var(--gray-400);
+}
+
+/* Full width for template select */
+.full-width {
+  width: 100%;
+}
+
+/* Adjust form spacing for template section */
+.form-group {
+  margin-bottom: 16px;
+}

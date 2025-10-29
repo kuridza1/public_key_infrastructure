@@ -5,7 +5,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import rs.ac.uns.ftn.pki.certificates.model.Certificate;
-import rs.ac.uns.ftn.pki.users.model.User;
 
 import java.math.BigInteger;
 import java.time.OffsetDateTime;
@@ -57,84 +56,21 @@ public interface CertificateRepository extends JpaRepository<Certificate, UUID> 
     """)
     List<Certificate> findActiveCertificates();
 
-    // Self-signed (roots)
-    List<Certificate> findBySigningCertificateIsNull();
-
-    // 1) All valid signing certs (system-wide)
+    // For listing active signing certs for an issuer while excluding revoked
     @Query("""
-    SELECT c FROM Certificate c
-    WHERE c.canSign = true
-      AND c.notBefore <= :now
-      AND c.notAfter  >= :now
-      AND NOT EXISTS (
-         SELECT 1 FROM RevokedCertificate r
-         WHERE r.certificateSerialNumber = c.serialNumber
-      )
-""")
-    List<Certificate> findAllActiveSigning(@Param("now") OffsetDateTime now);
-
-    // 2) Valid signing certs ISSUED BY a user (your "mine" today)
-    @Query("""
-    SELECT c FROM Certificate c
-    WHERE c.signedBy.id = :issuerId
-      AND c.canSign = true
-      AND c.notBefore <= :now
-      AND c.notAfter  >= :now
-      AND NOT EXISTS (
-         SELECT 1 FROM RevokedCertificate r
-         WHERE r.certificateSerialNumber = c.serialNumber
-      )
-""")
+        SELECT c FROM Certificate c
+        WHERE c.signedBy.id = :issuerId
+          AND c.notBefore <= :now
+          AND c.notAfter  >= :now
+          AND c.canSign = true
+          AND NOT EXISTS (
+             SELECT 1 FROM RevokedCertificate r
+             WHERE r.certificateSerialNumber = c.serialNumber
+          )
+    """)
     List<Certificate> findActiveSigningByIssuer(@Param("issuerId") UUID issuerId,
                                                 @Param("now") OffsetDateTime now);
 
-    @Query("""
-SELECT c FROM User u
-JOIN u.assignedCertificates c
-LEFT JOIN FETCH c.signingCertificate
-LEFT JOIN FETCH c.signedBy
-WHERE u.id = :userId
-  AND c.canSign = true
-  AND c.notBefore <= :now
-  AND c.notAfter  >= :now
-  AND NOT EXISTS (
-     SELECT 1 FROM RevokedCertificate r
-     WHERE r.certificateSerialNumber = c.serialNumber
-  )
-""")
-    List<Certificate> findActiveSigningAssignedToUser(@Param("userId") UUID userId,
-                                                      @Param("now") OffsetDateTime now);
-
-    @Query("""
-    SELECT c FROM Certificate c
-    WHERE c.canSign = true
-      AND c.signingCertificate IS NOT NULL
-      AND c.notBefore <= :now
-      AND c.notAfter  >= :now
-      AND NOT EXISTS (
-         SELECT 1 FROM RevokedCertificate r
-         WHERE r.certificateSerialNumber = c.serialNumber
-      )
-      AND NOT EXISTS (
-         SELECT 1
-         FROM User u
-         JOIN u.assignedCertificates ac
-         WHERE u.id = :userId
-           AND ac = c
-      )
-""")
-    List<Certificate> findActiveSigningNotAssignedTo(@Param("userId") UUID userId,
-                                                     @Param("now") java.time.OffsetDateTime now);
-
-    // CertificateRepository
-    @Query("""
-    SELECT c FROM User u
-    JOIN u.assignedCertificates c
-    LEFT JOIN FETCH c.signingCertificate
-    LEFT JOIN FETCH c.signedBy
-    WHERE u.id = :userId
-""")
-    List<Certificate> findAssignedToUser(@Param("userId") UUID userId);
-
-
+    // Self-signed (roots)
+    List<Certificate> findBySigningCertificateIsNull();
 }

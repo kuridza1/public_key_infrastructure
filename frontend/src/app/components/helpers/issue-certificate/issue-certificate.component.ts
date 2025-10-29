@@ -16,6 +16,8 @@ import {ToastrService} from '../toastr/toastr.service';
 import {Certificate} from '../../../models/Certificate';
 import {AuthService} from '../../../services/auth/auth.service';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
+import { CertificateTemplateService, TemplateResponse } from '../../../services/certificates/certificate-templates.service';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-issue-certificate',
@@ -32,6 +34,7 @@ import {MatProgressSpinner} from '@angular/material/progress-spinner';
     NgIf,
     MatChipsModule,
     ReactiveFormsModule,
+    MatCheckboxModule,
   ],
   templateUrl: './issue-certificate.component.html',
   styleUrl: './issue-certificate.component.css'
@@ -42,6 +45,7 @@ export class IssueCertificateComponent implements OnInit {
   @ViewChild('certForm') certForm!: NgForm;
 
   certificatesService = inject(CertificatesService);
+  templateService = inject(CertificateTemplateService); // NEW SERVICE
   auth = inject(AuthService);
   toast = inject(ToastrService)
 
@@ -50,6 +54,9 @@ export class IssueCertificateComponent implements OnInit {
   loading = true;
   noSigningCertificates = false;
   signingCertificates: { key: string | Certificate, value: string }[] = [];
+  templates: TemplateResponse[] = []; // NEW: Templates list
+  useTemplate = false; // NEW: Template toggle
+  selectedTemplate: TemplateResponse | null = null; // NEW: Selected template
   extensions: { key: string, value: any }[] = [];
   dateNotBefore: Date | null = null;
   dateNotAfter: Date | null = null;
@@ -80,7 +87,7 @@ export class IssueCertificateComponent implements OnInit {
 
   loadCaSigningCertificates() {
     this.signingCertificates = []
-    this.certificatesService.getMyValidSigningCertificates().subscribe({
+    this.certificatesService.getMyValidCertificates().subscribe({
       next: value => {
         if (value.length === 0) {
           this.noSigningCertificates = true;
@@ -114,6 +121,128 @@ export class IssueCertificateComponent implements OnInit {
     })
   }
 
+onSigningCertificateChange() {
+  if (this.useTemplate && this.signingCertificate && typeof this.signingCertificate !== 'string') {
+    // Use serialNumber instead of id since your Certificate interface doesn't have id
+    this.loadTemplatesForCa(this.signingCertificate.serialNumber);
+  } else {
+    this.templates = [];
+    this.selectedTemplate = null;
+  }
+}
+
+// NEW: Load templates for selected CA
+loadTemplatesForCa(caSerialNumber: string) {
+  // Since your backend expects UUID but we have serialNumber (string),
+  // we need to get the actual CA certificate ID first
+  // For now, we'll load all templates and filter by CA issuer name
+  this.templateService.getTemplates().subscribe({
+    next: (templates) => {
+      // Filter templates by CA issuer (issuedTo field)
+      const selectedCert = this.signingCertificate as Certificate;
+      this.templates = templates.filter(template => 
+        template.caIssuerName === selectedCert.issuedTo
+      );
+      
+      if (this.templates.length === 0) {
+        this.toast.info('No Templates', 'No templates available for this CA certificate');
+      }
+    },
+    error: (error) => {
+      console.error('Error loading templates:', error);
+      this.toast.error('Error', 'Unable to load templates');
+    }
+  });
+}
+
+// NEW: Toggle template usage
+onUseTemplateChange() {
+  if (!this.useTemplate) {
+    this.selectedTemplate = null;
+    this.templates = [];
+  } else if (this.signingCertificate && typeof this.signingCertificate !== 'string') {
+    this.loadTemplatesForCa(this.signingCertificate.serialNumber);
+  }
+}
+onTemplateChange() {
+  if (this.selectedTemplate) {
+    this.applyTemplate(this.selectedTemplate);
+  } else {
+    // Clear any template-applied values when no template is selected
+    this.clearTemplateValues();
+  }
+}
+// NEW: Apply template values to form
+applyTemplate(template: TemplateResponse) {
+  // Apply common name regex validation hint
+  if (template.commonNameRegex) {
+    this.toast.info('Template Applied', `Common Name must match: ${template.commonNameRegex}`);
+  }
+
+  // Apply key usage if template has it
+  if (template.keyUsage) {
+    let keyUsageExt = this.extensions.find(ext => ext.key === 'keyUsage');
+    if (!keyUsageExt) {
+      // Create key usage extension if it doesn't exist
+      keyUsageExt = { key: 'keyUsage', value: [] };
+      this.extensions.push(keyUsageExt);
+    }
+    // Convert string to KeyUsageValue enum values
+    keyUsageExt.value = template.keyUsage.split(',').map(usage => {
+      const trimmed = usage.trim();
+      return KeyUsageValue[trimmed as keyof typeof KeyUsageValue];
+    }).filter(val => val !== undefined);
+  }
+
+  // Apply extended key usage if template has it
+  if (template.extendedKeyUsage) {
+    let extKeyUsageExt = this.extensions.find(ext => ext.key === 'extendedKeyUsage');
+    if (!extKeyUsageExt) {
+      // Create extended key usage extension if it doesn't exist
+      extKeyUsageExt = { key: 'extendedKeyUsage', value: [] };
+      this.extensions.push(extKeyUsageExt);
+    }
+    // Convert string to ExtendedKeyUsageValue enum values
+    extKeyUsageExt.value = template.extendedKeyUsage.split(',').map(usage => {
+      const trimmed = usage.trim();
+      return ExtendedKeyUsageValue[trimmed as keyof typeof ExtendedKeyUsageValue];
+    }).filter(val => val !== undefined);
+  }
+
+  // Apply basic constraints if template has it
+  if (template.basicConstraints) {
+    let basicConstraintsExt = this.extensions.find(ext => ext.key === 'basicConstraints');
+    if (!basicConstraintsExt) {
+      // Create basic constraints extension if it doesn't exist
+      basicConstraintsExt = { key: 'basicConstraints', value: { isCa: false, pathLen: null } };
+      this.extensions.push(basicConstraintsExt);
+    }
+    // Parse basic constraints string (e.g., "CA:true,pathlen:0")
+    const isCA = template.basicConstraints.toLowerCase().includes('ca:true');
+    const pathLenMatch = template.basicConstraints.match(/pathlen:(\d+)/);
+    const pathLen = pathLenMatch ? parseInt(pathLenMatch[1]) : null;
+    
+    basicConstraintsExt.value = {
+      isCa: isCA,
+      pathLen: pathLen
+    };
+  }
+
+  // Apply max TTL validation
+  if (template.maxTtlDays && this.dateNotBefore && this.dateNotAfter) {
+    const requestedDays = Math.ceil((this.dateNotAfter.getTime() - this.dateNotBefore.getTime()) / (1000 * 60 * 60 * 24));
+    if (requestedDays > template.maxTtlDays) {
+      this.toast.info('Template Validation', `Certificate validity exceeds template maximum of ${template.maxTtlDays} days`);
+    }
+  }
+}
+
+// NEW: Clear template-applied values
+clearTemplateValues() {
+  // You can optionally clear template-specific values here
+  // For now, we'll just show a message
+  this.toast.info('Template Removed', 'Template values have been cleared');
+}
   onCountryInput(e: Event) {
     const input = e.target as HTMLInputElement;
     const pos = input.selectionStart!;
@@ -216,6 +345,16 @@ export class IssueCertificateComponent implements OnInit {
       return;
     }
 
+    // NEW: Template TTL validation
+    if (this.selectedTemplate?.maxTtlDays && this.dateNotBefore && this.dateNotAfter) {
+      const requestedDays = Math.ceil((this.dateNotAfter.getTime() - this.dateNotBefore.getTime()) / (1000 * 60 * 60 * 24));
+      if (requestedDays > this.selectedTemplate.maxTtlDays) {
+        this.toast.error('Invalid Date', `Certificate validity exceeds template maximum of ${this.selectedTemplate.maxTtlDays} days`);
+        control.control.setErrors({invalidTtl: true});
+        return;
+      }
+    }
+
     control.control.setErrors(null);
   }
 
@@ -225,6 +364,15 @@ export class IssueCertificateComponent implements OnInit {
 
   onSubmit(form: NgForm) {
     if (!form.valid) return;
+
+    // NEW: Template validation
+    if (this.useTemplate && this.selectedTemplate) {
+      // Validate common name against template regex
+      if (this.selectedTemplate.commonNameRegex && !new RegExp(this.selectedTemplate.commonNameRegex).test(this.commonName)) {
+        this.toast.error('Validation Error', `Common Name does not match template pattern: ${this.selectedTemplate.commonNameRegex}`);
+        return;
+      }
+    }
 
     this.loading = true;
 
@@ -237,6 +385,11 @@ export class IssueCertificateComponent implements OnInit {
       organizationalUnit: this.organizationalUnit,
       email: this.email,
       country: this.country
+    }
+
+    // NEW: Add template ID if using template
+    if (this.useTemplate && this.selectedTemplate) {
+      dto.templateId = this.selectedTemplate.id;
     }
 
     if (this.dateNotBefore)
@@ -271,7 +424,12 @@ export class IssueCertificateComponent implements OnInit {
         };
     })
 
-    this.certificatesService.issueCertificate(dto).subscribe({
+    // NEW: Choose between regular and template-based issuance
+    const issueRequest = this.useTemplate && this.selectedTemplate
+      ? this.certificatesService.issueCertificateWithTemplate(dto)
+      : this.certificatesService.issueCertificate(dto);
+
+    issueRequest.subscribe({
       next: () => {
         this.loading = false;
         this.toast.success("Success", "Certificate successfully created");
@@ -283,6 +441,7 @@ export class IssueCertificateComponent implements OnInit {
         this.resetFields();
       },
       error: err => {
+        this.loading = false;
         this.toast.error("Unable to issue the certificate", `Error: ${err}`);
       }
     });
@@ -290,6 +449,9 @@ export class IssueCertificateComponent implements OnInit {
 
   private resetFields() {
     this.extensions = [];
+    this.useTemplate = false;
+    this.selectedTemplate = null;
+    this.templates = [];
     this.certForm.resetForm();
   }
 }
