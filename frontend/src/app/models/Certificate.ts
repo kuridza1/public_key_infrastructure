@@ -1,4 +1,5 @@
 export interface Certificate {
+  id: string;
   serialNumber: string;
   prettySerialNumber: string;
   issuedBy: string;
