@@ -32,7 +32,6 @@ import {MatProgressSpinner} from '@angular/material/progress-spinner';
     NgIf,
     MatChipsModule,
     ReactiveFormsModule,
-    MatProgressSpinner
   ],
   templateUrl: './issue-certificate.component.html',
   styleUrl: './issue-certificate.component.css'
@@ -81,7 +80,7 @@ export class IssueCertificateComponent implements OnInit {
 
   loadCaSigningCertificates() {
     this.signingCertificates = []
-    this.certificatesService.getMyValidCertificates().subscribe({
+    this.certificatesService.getMyValidSigningCertificates().subscribe({
       next: value => {
         if (value.length === 0) {
           this.noSigningCertificates = true;

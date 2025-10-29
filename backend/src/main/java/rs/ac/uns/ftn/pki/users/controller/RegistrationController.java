@@ -20,6 +20,7 @@ public class RegistrationController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Validated @RequestBody RegisterRequest req) {
         RegistrationResult result = service.register(req, false);
+        System.out.println(result);
         return ResponseEntity.status(result.getStatusCode()).body(result.getResponse());
     }
 

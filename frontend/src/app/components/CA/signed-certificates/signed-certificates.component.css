@@ -12,7 +12,7 @@
 }
 
 .container {
-  background-color: var(--background2);
+  background-color: white;
   padding: 24px 24px 40px 24px;
   border-radius: 24px;
   margin: 90px 0 140px 0;

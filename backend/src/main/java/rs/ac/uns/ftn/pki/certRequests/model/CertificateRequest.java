@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import rs.ac.uns.ftn.pki.users.model.User;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "certificate_requests")
@@ -15,6 +13,7 @@ public class CertificateRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Use TEXT in DB (PostgreSQL) to prevent truncation on large CSRs
     @Column(name = "encoded_csr", nullable = false, columnDefinition = "TEXT")
     private String encodedCSR;
 
@@ -35,8 +34,7 @@ public class CertificateRequest {
     @Column(name = "not_after")
     private LocalDateTime notAfter;
 
-    // Constructors
-    public CertificateRequest() {}
+    public CertificateRequest() { }
 
     public CertificateRequest(String encodedCSR, User requestedFor, User requestedFrom,
                               LocalDateTime submittedOn, LocalDateTime notBefore, LocalDateTime notAfter) {
@@ -48,66 +46,51 @@ public class CertificateRequest {
         this.notAfter = notAfter;
     }
 
-    // Getter and Setter methods
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public String getEncodedCSR() { return encodedCSR; }
+    public void setEncodedCSR(String encodedCSR) { this.encodedCSR = encodedCSR; }
+    public User getRequestedFor() { return requestedFor; }
+    public void setRequestedFor(User requestedFor) { this.requestedFor = requestedFor; }
+    public User getRequestedFrom() { return requestedFrom; }
+    public void setRequestedFrom(User requestedFrom) { this.requestedFrom = requestedFrom; }
+    public LocalDateTime getSubmittedOn() { return submittedOn; }
+    public void setSubmittedOn(LocalDateTime submittedOn) { this.submittedOn = submittedOn; }
+    public LocalDateTime getNotBefore() { return notBefore; }
+    public void setNotBefore(LocalDateTime notBefore) { this.notBefore = notBefore; }
+    public LocalDateTime getNotAfter() { return notAfter; }
+    public void setNotAfter(LocalDateTime notAfter) { this.notAfter = notAfter; }
 
-    public String getEncodedCSR() {
-        return encodedCSR;
-    }
-
-    public void setEncodedCSR(String encodedCSR) {
-        this.encodedCSR = encodedCSR;
-    }
-
-    public User getRequestedFor() {
-        return requestedFor;
-    }
-
-    public void setRequestedFor(User requestedFor) {
-        this.requestedFor = requestedFor;
-    }
-
-    public User getRequestedFrom() {
-        return requestedFrom;
-    }
-
-    public void setRequestedFrom(User requestedFrom) {
-        this.requestedFrom = requestedFrom;
-    }
-
-    public LocalDateTime getSubmittedOn() {
-        return submittedOn;
-    }
-
-    public void setSubmittedOn(LocalDateTime submittedOn) {
-        this.submittedOn = submittedOn;
-    }
-
-    public LocalDateTime getNotBefore() {
-        return notBefore;
-    }
-
-    public void setNotBefore(LocalDateTime notBefore) {
-        this.notBefore = notBefore;
-    }
-
-    public LocalDateTime getNotAfter() {
-        return notAfter;
-    }
-
-    public void setNotAfter(LocalDateTime notAfter) {
-        this.notAfter = notAfter;
-    }
-
-    // Equivalent of GetEncodedCsrNoHeader()
-    public String getEncodedCsrNoHeader() {
+    /**
+     * Normalize whatever was stored (PEM/JSON/CSV/Base64) into a clean Base64 DER string.
+     */
+    @Transient
+    public String getEncodedCsrNormalized() {
         if (encodedCSR == null) return null;
 
-        return Arrays.stream(encodedCSR.split("\n"))
-                .filter(line -> !line.contains("CERTIFICATE"))
-                .map(String::trim)
-                .collect(Collectors.joining());
+        String s = encodedCSR.trim();
+
+        // Unquote if CSV/JSON stored like: "MIIC..."
+        if (s.length() >= 2 && s.charAt(0) == '"' && s.charAt(s.length() - 1) == '"') {
+            s = s.substring(1, s.length() - 1).trim();
+        }
+
+        // Unescape common JSON sequences (if they sneaked in)
+        s = s.replace("\\r", "\r").replace("\\n", "\n").replace("\\t", "\t");
+
+        // Strip PEM headers/footers if present
+        s = s.replace("-----BEGIN CERTIFICATE REQUEST-----", "")
+                .replace("-----END CERTIFICATE REQUEST-----", "");
+
+        // Remove all whitespace
+        s = s.replaceAll("\\s+", "");
+
+        // URL-safe to standard Base64
+        s = s.replace('-', '+').replace('_', '/');
+
+        // Add Base64 padding if missing
+        int mod = s.length() % 4;
+        if (mod != 0) s = s + "====".substring(mod);
+
+        return s;
     }
 }

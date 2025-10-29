@@ -1,5 +1,4 @@
 <div *ngIf="loading" class="loading min-height-loading">
-  <mat-spinner></mat-spinner>
 </div>
 <form *ngIf="!loading" class="container" #certForm="ngForm" (ngSubmit)="onSubmit()">
   <button (click)="onNoClick()" class="close-button" mat-icon-button tabindex="-1">
