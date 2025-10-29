@@ -17,50 +17,41 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("""
 
             select distinct u from User u
-           left join fetch u.issuedCertificates c
+           left join fetch u.myCertificates c
            where u.role = :role
            """)
     List<User> findAllByRoleWithCertificates(@Param("role") Role role);
 
     @Query("""
            select distinct u from User u
-           left join fetch u.issuedCertificates
+           left join fetch u.myCertificates
            where u.id = :id
            """)
     Optional<User> findByIdWithCertificates(@Param("id") UUID id);
 
     @Query("""
            select distinct u from User u
-           left join fetch u.issuedCertificates
+           left join fetch u.myCertificates
            where u.email = :email
            """)
     Optional<User> findByEmailWithCertificates(@Param("email") String email);
 
     @Query("""
            select case when count(c) > 0 then true else false end
-           from User u join u.issuedCertificates c
+           from User u join u.myCertificates c
            where u.id = :userId and c.serialNumber = :certificateSerialNumber
            """)
     boolean userHasCertificate(@Param("userId") UUID userId,
                                @Param("certificateSerialNumber") java.math.BigInteger certificateSerialNumber);
     User findByEmail(String email);
 
-    @EntityGraph(attributePaths = "issuedCertificates")
+    @EntityGraph(attributePaths = "myCertificates")
     Optional<User> findWithMyCertificatesById(UUID id);
 
 
     Optional<User> findByIdAndRole(UUID id, Role role);
 
-    @EntityGraph(attributePaths = {"issuedCertificates"})
+    @EntityGraph(attributePaths = {"myCertificates"})
     Optional<User> findWithMyCertificatesByIdAndRole(UUID id, Role role);
-
-    // UserRepository
-    @Query("""
-    SELECT u FROM User u
-    LEFT JOIN FETCH u.assignedCertificates
-    WHERE u.id = :id
-""")
-    Optional<User> findByIdWithAssignedCertificates(@Param("id") UUID id);
-
 
 }
