@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.HexFormat;
 
 @Service
@@ -33,7 +34,7 @@ public class RegistrationService {
     @Value("${auth.email-confirmation.token-ttl-minutes:60}")
     private int tokenTtlMinutes;
 
-    @Value("${app.public-base-url:http://localhost:4200}")
+    @Value("${app.public-base-url:https://localhost:4200}")
     private String publicBaseUrl;
 
     public RegistrationService(
@@ -51,7 +52,6 @@ public class RegistrationService {
         this.commonStore = commonStore;
     }
 
-    @Transactional
     public RegistrationResult register(RegisterRequest req, boolean creatingCaUser) {
         final String emailNorm = req.getEmail() == null ? "" : req.getEmail().trim();
 
@@ -80,7 +80,8 @@ public class RegistrationService {
         user.setEmailConfirmed(creatingCaUser);
         user.setHashedPassword(pwdHash);
         user.setRefreshToken("");
-        user.setMyCertificates(java.util.Collections.emptyList());
+        user.setEmailConfirmed(true);
+        user.setMyCertificates(new ArrayList<>());
         userRepo.save(user);
 
         // email confirmation token

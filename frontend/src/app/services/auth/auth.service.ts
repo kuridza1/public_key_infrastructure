@@ -1,4 +1,4 @@
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {inject, Injectable} from '@angular/core';
 import {AuthState} from '../../models/AuthState';
 import {BasicUser} from '../../models/BasicUser';
@@ -22,11 +22,12 @@ import {ConfirmEmailResponse} from '../../models/ConfirmEmailResponse';
 import {CreateCaUser} from '../../models/CreateCaUser';
 import {RegisterResponse} from '../../models/RegisterResponse';
 import {HttpErrorResponse} from '@angular/common/http';
+import { create } from 'domain';
 
 @Injectable({providedIn: 'root'})
 export class AuthService {
   httpClient = inject(HttpClient);
-  urlCore = 'https://localhost:8080/api/auth';
+  urlCore = 'https://localhost:8081/api/auth';
 
   private static STORAGE_KEY = 'auth.state';
 
@@ -193,9 +194,21 @@ export class AuthService {
       );
   }
 
+   private createHeaders(): HttpHeaders {
+    if (!this.userId || !this.role) {
+      throw new Error('User authentication data is not available');
+    }
+
+    return new HttpHeaders({
+      'userId': this.userId,
+      'role': this.role
+    } as { [key: string]: string });
+  }
+
   logout(): Observable<void> {
+    const headers = this.createHeaders();
     return this.httpClient
-      .post<void>(`${this.urlCore}/logout`, {}, {})
+      .post<void>(`${this.urlCore}/logout`, {}, {headers:headers})
       .pipe(finalize(() => this.clearState(/* broadcast */ true)));
   }
 

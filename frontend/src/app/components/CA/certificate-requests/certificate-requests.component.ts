@@ -18,6 +18,7 @@ import {
 import { CertificateRequestsService } from '../../../services/certificates/certificate-requests.service';
 import { DatePipe } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import {ToastrService} from '../../helpers/toastr/toastr.service';
 
 @Component({
   selector: 'app-certificate-requests',
@@ -41,7 +42,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class CertificateRequestsComponent implements OnInit {
   certificateRequestService = inject(CertificateRequestsService);
-  snackBar = inject(MatSnackBar);
+  toast = inject(ToastrService);
   dialog = inject(MatDialog);
 
   displayedColumns: string[] = [
@@ -61,7 +62,7 @@ export class CertificateRequestsComponent implements OnInit {
   loadRequests() {
     this.certificateRequestService.getRequests().subscribe({
       next: data => this.certificateRequests = data,
-      error: err => this.showError(`Unable to load certificate requests: ${err}`)
+      error: err => this.toast.error(`Unable to load certificate requests: ${err}`, 'error')
     });
   }
 
@@ -73,26 +74,9 @@ export class CertificateRequestsComponent implements OnInit {
     }).afterClosed().subscribe(result => {
       if (result === 'reload') {
         this.loadRequests();
-        this.showSuccess('Certificate requests reloaded successfully');
+        this.toast.success('Certificate requests reloaded successfully', 'success');
       }
     });
   }
 
-  private showSuccess(message: string) {
-    this.snackBar.open(message, 'OK', {
-      duration: 3000,
-      horizontalPosition: 'right',
-      verticalPosition: 'bottom',
-      panelClass: ['mat-mdc-snack-bar-success']
-    });
-  }
-
-  private showError(message: string) {
-    this.snackBar.open(message, 'Dismiss', {
-      duration: 5000,
-      horizontalPosition: 'right',
-      verticalPosition: 'bottom',
-      panelClass: ['mat-mdc-snack-bar-error']
-    });
-  }
 }

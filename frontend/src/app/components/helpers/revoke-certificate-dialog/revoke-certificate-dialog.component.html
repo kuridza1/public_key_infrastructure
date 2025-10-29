@@ -1,7 +1,4 @@
 <div class="container">
-  <button (click)="onNoClick()" class="close-button" mat-icon-button tabindex="-1">
-    <span class="material-symbols-rounded">close</span>
-  </button>
 
   <mat-form-field appearance="outline">
     <mat-select placeholder="Reason for revoking" tabindex="-1" [(ngModel)]="reason">
@@ -17,4 +14,7 @@
   <button (click)="closeDialog()" [disabled]="!reason" class="blue-button finish">
     Revoke
   </button>
+
+    <button class="btn-accent blue-button" (click)="onNoClick()">Close</button>
+
 </div>
