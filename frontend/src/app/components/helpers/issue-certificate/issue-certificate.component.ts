@@ -54,9 +54,9 @@ export class IssueCertificateComponent implements OnInit {
   loading = true;
   noSigningCertificates = false;
   signingCertificates: { key: string | Certificate, value: string }[] = [];
-  templates: TemplateResponse[] = []; // NEW: Templates list
-  useTemplate = false; // NEW: Template toggle
-  selectedTemplate: TemplateResponse | null = null; // NEW: Selected template
+  templates: TemplateResponse[] = [];
+  useTemplate = false;
+  selectedTemplate: TemplateResponse | null = null;
   extensions: { key: string, value: any }[] = [];
   dateNotBefore: Date | null = null;
   dateNotAfter: Date | null = null;
@@ -80,8 +80,10 @@ export class IssueCertificateComponent implements OnInit {
   ngOnInit() {
     if (this.auth.role === 'CaUser') {
       this.loadCaSigningCertificates();
+      this.loadTemplatesForCa();
     } else if (this.auth.role === 'Admin') {
       this.loadAdminSigningCertificates();
+      this.loadTemplatesForCa();
     }
   }
 
@@ -124,28 +126,26 @@ export class IssueCertificateComponent implements OnInit {
 onSigningCertificateChange() {
   if (this.useTemplate && this.signingCertificate && typeof this.signingCertificate !== 'string') {
     // Use serialNumber instead of id since your Certificate interface doesn't have id
-    this.loadTemplatesForCa(this.signingCertificate.serialNumber);
+    this.loadTemplatesForCa();
   } else {
     this.templates = [];
     this.selectedTemplate = null;
   }
 }
 
-// NEW: Load templates for selected CA
-loadTemplatesForCa(caSerialNumber: string) {
-  // Since your backend expects UUID but we have serialNumber (string),
-  // we need to get the actual CA certificate ID first
-  // For now, we'll load all templates and filter by CA issuer name
+loadTemplatesForCa() {
   this.templateService.getTemplates().subscribe({
     next: (templates) => {
-      // Filter templates by CA issuer (issuedTo field)
-      const selectedCert = this.signingCertificate as Certificate;
-      this.templates = templates.filter(template => 
-        template.caIssuerName === selectedCert.issuedTo
-      );
-      
+      console.log('All templates received:', templates);
+
+      this.templates = templates;
+
+      console.log('Setting templates (no filter):', this.templates);
+
       if (this.templates.length === 0) {
-        this.toast.info('No Templates', 'No templates available for this CA certificate');
+        this.toast.info('No Templates', 'No templates available in system');
+      } else {
+        this.toast.success('Templates Loaded', `Found ${this.templates.length} template(s)`);
       }
     },
     error: (error) => {
@@ -155,13 +155,12 @@ loadTemplatesForCa(caSerialNumber: string) {
   });
 }
 
-// NEW: Toggle template usage
 onUseTemplateChange() {
   if (!this.useTemplate) {
     this.selectedTemplate = null;
     this.templates = [];
   } else if (this.signingCertificate && typeof this.signingCertificate !== 'string') {
-    this.loadTemplatesForCa(this.signingCertificate.serialNumber);
+    this.loadTemplatesForCa();
   }
 }
 onTemplateChange() {
@@ -172,75 +171,119 @@ onTemplateChange() {
     this.clearTemplateValues();
   }
 }
-// NEW: Apply template values to form
 applyTemplate(template: TemplateResponse) {
-  // Apply common name regex validation hint
+  console.log('Applying template:', template);
+
+  // 1. CLEAR existing extensions first
+  this.extensions = [];
+
+  // 2. Apply common name regex validation hint
   if (template.commonNameRegex) {
     this.toast.info('Template Applied', `Common Name must match: ${template.commonNameRegex}`);
   }
 
-  // Apply key usage if template has it
+  // 3. Apply key usage if template has it
   if (template.keyUsage) {
-    let keyUsageExt = this.extensions.find(ext => ext.key === 'keyUsage');
-    if (!keyUsageExt) {
-      // Create key usage extension if it doesn't exist
-      keyUsageExt = { key: 'keyUsage', value: [] };
-      this.extensions.push(keyUsageExt);
-    }
-    // Convert string to KeyUsageValue enum values
-    keyUsageExt.value = template.keyUsage.split(',').map(usage => {
-      const trimmed = usage.trim();
-      return KeyUsageValue[trimmed as keyof typeof KeyUsageValue];
-    }).filter(val => val !== undefined);
+    const keyUsageValues = this.parseKeyUsage(template.keyUsage);
+    this.extensions.push({
+      key: 'keyUsage',
+      value: keyUsageValues
+    });
   }
 
-  // Apply extended key usage if template has it
+  // 4. Apply extended key usage if template has it
   if (template.extendedKeyUsage) {
-    let extKeyUsageExt = this.extensions.find(ext => ext.key === 'extendedKeyUsage');
-    if (!extKeyUsageExt) {
-      // Create extended key usage extension if it doesn't exist
-      extKeyUsageExt = { key: 'extendedKeyUsage', value: [] };
-      this.extensions.push(extKeyUsageExt);
-    }
-    // Convert string to ExtendedKeyUsageValue enum values
-    extKeyUsageExt.value = template.extendedKeyUsage.split(',').map(usage => {
-      const trimmed = usage.trim();
-      return ExtendedKeyUsageValue[trimmed as keyof typeof ExtendedKeyUsageValue];
-    }).filter(val => val !== undefined);
+    const extKeyUsageValues = this.parseExtendedKeyUsage(template.extendedKeyUsage);
+    this.extensions.push({
+      key: 'extendedKeyUsage',
+      value: extKeyUsageValues
+    });
   }
 
-  // Apply basic constraints if template has it
+  // 5. Apply basic constraints if template has it
   if (template.basicConstraints) {
-    let basicConstraintsExt = this.extensions.find(ext => ext.key === 'basicConstraints');
-    if (!basicConstraintsExt) {
-      // Create basic constraints extension if it doesn't exist
-      basicConstraintsExt = { key: 'basicConstraints', value: { isCa: false, pathLen: null } };
-      this.extensions.push(basicConstraintsExt);
-    }
-    // Parse basic constraints string (e.g., "CA:true,pathlen:0")
-    const isCA = template.basicConstraints.toLowerCase().includes('ca:true');
-    const pathLenMatch = template.basicConstraints.match(/pathlen:(\d+)/);
-    const pathLen = pathLenMatch ? parseInt(pathLenMatch[1]) : null;
-    
-    basicConstraintsExt.value = {
-      isCa: isCA,
-      pathLen: pathLen
-    };
+    const basicConstraints = this.parseBasicConstraints(template.basicConstraints);
+    this.extensions.push({
+      key: 'basicConstraints',
+      value: basicConstraints
+    });
   }
 
-  // Apply max TTL validation
-  if (template.maxTtlDays && this.dateNotBefore && this.dateNotAfter) {
-    const requestedDays = Math.ceil((this.dateNotAfter.getTime() - this.dateNotBefore.getTime()) / (1000 * 60 * 60 * 24));
-    if (requestedDays > template.maxTtlDays) {
-      this.toast.info('Template Validation', `Certificate validity exceeds template maximum of ${template.maxTtlDays} days`);
-    }
+  // 6. Auto-set validity period if maxTtlDays is specified
+  if (template.maxTtlDays) {
+    this.dateNotBefore = new Date();
+    this.dateNotAfter = new Date();
+    this.dateNotAfter.setDate(this.dateNotAfter.getDate() + template.maxTtlDays);
+    this.revalidateDates();
   }
+
+  this.toast.success('Template Applied', `"${template.name}" template has been applied`);
 }
 
-// NEW: Clear template-applied values
+// ADD THESE HELPER METHODS:
+
+private parseKeyUsage(keyUsageString: string): KeyUsageValue[] {
+  const usages: KeyUsageValue[] = [];
+  const usageList = keyUsageString.split(',').map(u => u.trim());
+
+  usageList.forEach(usage => {
+    // Case-insensitive matching
+    const key = Object.keys(KeyUsageValue).find(
+      k => k.toLowerCase() === usage.toLowerCase()
+    ) as keyof typeof KeyUsageValue;
+
+    if (key) {
+      usages.push(KeyUsageValue[key]);
+    } else {
+      console.warn(`Unknown key usage: ${usage}`);
+    }
+  });
+
+  return usages;
+}
+
+private parseExtendedKeyUsage(extKeyUsageString: string): ExtendedKeyUsageValue[] {
+  const usages: ExtendedKeyUsageValue[] = [];
+  const usageList = extKeyUsageString.split(',').map(u => u.trim());
+
+  usageList.forEach(usage => {
+    // Case-insensitive matching
+    const key = Object.keys(ExtendedKeyUsageValue).find(
+      k => k.toLowerCase() === usage.toLowerCase()
+    ) as keyof typeof ExtendedKeyUsageValue;
+
+    if (key) {
+      usages.push(ExtendedKeyUsageValue[key]);
+    } else {
+      console.warn(`Unknown extended key usage: ${usage}`);
+    }
+  });
+
+  return usages;
+}
+
+private parseBasicConstraints(basicConstraintsString: string): { isCa: boolean, pathLen: number | null } {
+  const constraints = { isCa: false, pathLen: 0 };
+
+  // Case-insensitive parsing
+  if (basicConstraintsString.toLowerCase().includes('ca:true')) {
+    constraints.isCa = true;
+  }
+
+  const pathLenMatch = basicConstraintsString.match(/pathlen:(\d+)/i);
+  if (pathLenMatch) {
+    constraints.pathLen = parseInt(pathLenMatch[1]);
+  }
+
+  return constraints;
+}
 clearTemplateValues() {
-  // You can optionally clear template-specific values here
-  // For now, we'll just show a message
+  // Clear template-specific extensions but keep basic form data
+  const nonTemplateExtensions = this.extensions.filter(ext =>
+    !['keyUsage', 'extendedKeyUsage', 'basicConstraints'].includes(ext.key)
+  );
+  this.extensions = nonTemplateExtensions;
+
   this.toast.info('Template Removed', 'Template values have been cleared');
 }
   onCountryInput(e: Event) {

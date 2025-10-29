@@ -339,7 +339,7 @@ export class EditCertificateRequestDialogComponent implements OnInit {
   }
 
   onReject() {
-    this.certificateRequestsService.rejectRequest(this.csr.id).subscribe({
+    this.certificateRequestsService.rejectRequest(Number(this.csr.id)).subscribe({
       next: () => {
         this.loading = false;
         this.showToast('Certificate request rejected successfully', 'success');
