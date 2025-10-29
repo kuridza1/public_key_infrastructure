@@ -24,7 +24,6 @@ export class EmailConfirmationComponent implements OnInit {
             this.toastr.success('Success', 'Email confirmed successfully');
           },
           error: (err) => {
-            this.toastr.error('Unable to confirm the email', `Error: ${err.error.error}`);
           }
         });
       } else {
