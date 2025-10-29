@@ -234,7 +234,7 @@ public class CertificateService {
         var user = db.getUserRepository().findByIdWithCertificates(requesterId)
                 .orElseThrow(() -> new RuntimeException("User not found!"));
 
-        boolean requesterOwns = user.getMyCertificates().contains(eeCert);
+        boolean requesterOwns = user.getAssignedCertificates().contains(eeCert);
         boolean signedByRequester = eeCert.getSignedBy() != null && eeCert.getSignedBy().getId().equals(requesterId);
 
         if (!requesterOwns && !signedByRequester && requesterRole != Role.Admin) {

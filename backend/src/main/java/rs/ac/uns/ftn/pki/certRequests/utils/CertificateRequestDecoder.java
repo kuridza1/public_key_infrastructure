@@ -1,6 +1,8 @@
 package rs.ac.uns.ftn.pki.certRequests.utils;
 
+import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.pkcs.Attribute;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -8,11 +10,13 @@ import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
-import rs.ac.uns.ftn.pki.certRequests.model.CertificateRequest;
 import rs.ac.uns.ftn.pki.certRequests.dtos.CertificateRequestResponse;
+import rs.ac.uns.ftn.pki.certRequests.model.CertificateRequest;
 import rs.ac.uns.ftn.pki.certificates.model.extensionValues.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.Base64;
 
 public final class CertificateRequestDecoder {
 
@@ -20,49 +24,48 @@ public final class CertificateRequestDecoder {
 
     public static CertificateRequestResponse decodeCertificateRequest(CertificateRequest req) {
         try {
-            String b64 = req.getEncodedCsrNormalized();
-            if (b64 == null || b64.isBlank()) {
-                throw new IllegalArgumentException("Empty CSR");
-            }
+            // 1) Load raw string from DB (support either normalized or original)
+            String raw = nullSafe(req.getEncodedCsrNormalized());
+            if (raw.isBlank()) raw = nullSafe(req.getEncodedCSR());
+            if (raw.isBlank()) throw new IllegalArgumentException("Empty CSR");
 
-            byte[] der;
-            try {
-                der = Base64.getDecoder().decode(b64);
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Base64 decode failed: " + e.getMessage(), e);
-            }
+            // 2) Normalize & decode to DER
+            byte[] der = readCsrDerBytes(raw);
 
-            // Quick DER sanity: must start with SEQUENCE (0x30)
+            // 3) Quick DER sanity: must start with SEQUENCE (0x30)
             if (der.length < 2 || (der[0] & 0xFF) != 0x30) {
-                throw new IllegalArgumentException("CSR is not DER SEQUENCE (first byte=" +
+                throw new IllegalArgumentException("CSR is not DER SEQUENCE (first byte = " +
                         (der.length == 0 ? "<empty>" : String.format("0x%02X", der[0])) + ")");
             }
 
+            // 4) Build PKCS#10 object
             PKCS10CertificationRequest csr = new PKCS10CertificationRequest(der);
 
-            // Subject
+            // 5) Subject DN
             X500Name subject = csr.getSubject();
-            String cn  = firstRdnValue(subject, BCStyle.CN);
-            String o   = firstRdnValue(subject, BCStyle.O);
-            String ou  = firstRdnValue(subject, BCStyle.OU);
-            String mail= firstRdnValue(subject, BCStyle.EmailAddress);
-            String c   = firstRdnValue(subject, BCStyle.C);
+            String cn   = firstRdnValue(subject, BCStyle.CN);
+            String o    = firstRdnValue(subject, BCStyle.O);
+            String ou   = firstRdnValue(subject, BCStyle.OU);
+            String mail = firstRdnValue(subject, BCStyle.EmailAddress);
+            String c    = firstRdnValue(subject, BCStyle.C);
 
             CertificateRequestResponse dto = new CertificateRequestResponse();
             dto.setId(String.valueOf(req.getId()));
-            dto.setCommonName(cn == null ? "" : cn);
-            dto.setOrganization(o == null ? "" : o);
-            dto.setOrganizationalUnit(ou == null ? "" : ou);
-            dto.setEmail(mail == null ? "" : mail);
-            dto.setCountry(c == null ? "" : c);
+            dto.setCommonName(orEmpty(cn));
+            dto.setOrganization(orEmpty(o));
+            dto.setOrganizationalUnit(orEmpty(ou));
+            dto.setEmail(orEmpty(mail));
+            dto.setCountry(orEmpty(c));
             dto.setNotBefore(req.getNotBefore());
             dto.setNotAfter(req.getNotAfter());
             dto.setSubmittedOn(req.getSubmittedOn());
 
-            // Extensions from extensionRequest attribute
-            var attrs = csr.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
-            if (attrs != null && attrs.length > 0 && attrs[0].getAttrValues().size() > 0) {
-                Extensions exts = Extensions.getInstance(attrs[0].getAttrValues().getObjectAt(0));
+            // 6) Extensions (pkcs-9-at-extensionRequest)
+            Attribute[] attrs = csr.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
+            if (attrs != null && attrs.length > 0) {
+                // Per our builder, the attribute value is a SET containing a single "Extensions"
+                ASN1Encodable val0 = attrs[0].getAttrValues().getObjectAt(0);
+                Extensions exts = Extensions.getInstance(val0);
 
                 // BasicConstraints
                 var bcExt = exts.getExtension(Extension.basicConstraints);
@@ -131,19 +134,79 @@ public final class CertificateRequestDecoder {
             }
 
             return dto;
+
         } catch (Exception e) {
-            // Optional temporary diagnostics
-            // System.err.println("[CSR DEBUG] id=" + req.getId() + " len=" +
-            //    (req.getEncodedCSR()==null?0:req.getEncodedCSR().length()) + " err=" + e.getMessage());
             throw new RuntimeException("Failed to decode CSR", e);
         }
     }
+
+    // -------- robust input handling --------
+
+    private static byte[] readCsrDerBytes(String raw) {
+        String s = raw.trim();
+
+        // Case A: PEM
+        if (s.contains("-----BEGIN CERTIFICATE REQUEST-----")) {
+            String inner = s
+                    .replace("-----BEGIN CERTIFICATE REQUEST-----", "")
+                    .replace("-----END CERTIFICATE REQUEST-----", "")
+                    .replaceAll("\\s+", "");
+            return base64ToDer(inner);
+        }
+
+        // Case B: raw Base64(DER) OR Base64(Base64(DER)) (double-encoded)
+        // First attempt: assume single Base64 of DER
+        byte[] first = tryBase64(s);
+        if (looksLikeDer(first)) return first;
+
+        // If not DER, maybe the decoded bytes are text that contain Base64 again (double-Base64)
+        // Try to interpret first decode as UTF-8 text with Base64 inside (strip whitespace)
+        String innerCandidate = new String(first, StandardCharsets.UTF_8).replaceAll("\\s+", "");
+        byte[] second = tryBase64(innerCandidate);
+        if (looksLikeDer(second)) return second;
+
+        // One more fallback: if raw had whitespace/newlines, strip and try again
+        String compact = s.replaceAll("\\s+", "");
+        byte[] again = tryBase64(compact);
+        if (looksLikeDer(again)) return again;
+
+        // Give up with a clear message
+        throw new IllegalArgumentException("CSR content is not PEM, not single Base64(DER), " +
+                "and not double-Base64(DER).");
+    }
+
+    private static byte[] base64ToDer(String base64) {
+        byte[] bytes = tryBase64(base64);
+        if (!looksLikeDer(bytes)) {
+            throw new IllegalArgumentException("Decoded PEM body is not DER (does not start with 0x30).");
+        }
+        return bytes;
+    }
+
+    private static byte[] tryBase64(String s) {
+        try {
+            return Base64.getDecoder().decode(s);
+        } catch (IllegalArgumentException e) {
+            // Return empty; caller will decide next step
+            return new byte[0];
+        }
+    }
+
+    private static boolean looksLikeDer(byte[] bytes) {
+        return bytes != null && bytes.length > 2 && (bytes[0] & 0xFF) == 0x30;
+    }
+
+    // -------- small helpers --------
+
+    private static String nullSafe(String v) { return v == null ? "" : v; }
 
     private static String firstRdnValue(X500Name name, ASN1ObjectIdentifier oid) {
         RDN[] rdns = name.getRDNs(oid);
         if (rdns == null || rdns.length == 0 || rdns[0].getFirst() == null) return null;
         return IETFUtils.valueToString(rdns[0].getFirst().getValue());
     }
+
+    private static String orEmpty(String s) { return s == null ? "" : s; }
 
     // Maps
     private static final Map<KeyUsageValue, Integer> KEY_USAGE_MAP = new EnumMap<>(KeyUsageValue.class);
