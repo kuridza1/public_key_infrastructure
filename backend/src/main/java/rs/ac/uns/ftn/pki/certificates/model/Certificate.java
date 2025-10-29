@@ -44,7 +44,7 @@ public class Certificate extends BaseEntity {
 
     @NotBlank
     @Column(nullable = false, columnDefinition = "text")
-    private String encodedValue; // Base64-encoded DER (X.509)
+    private String encodedValue;
 
     @NotNull
     @Column(nullable = false)

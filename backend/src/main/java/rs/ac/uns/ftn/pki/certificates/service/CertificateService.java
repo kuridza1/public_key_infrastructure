@@ -37,13 +37,15 @@ public class CertificateService {
     private final IUnifiedDbContext db;
     private final CertificateBuilder builder;   // builder bean
     private final Pkcs12Manager pkcs12Manager;  // keystore manager
+    private final PrivateKeyVault privateKeyVault;
 
     public CertificateService(IUnifiedDbContext db,
                               CertificateBuilder builder,
-                              Pkcs12Manager pkcs12Manager) {
+                              Pkcs12Manager pkcs12Manager, PrivateKeyVault privateKeyVault) {
         this.db = db;
         this.builder = builder;
         this.pkcs12Manager = pkcs12Manager;
+        this.privateKeyVault = privateKeyVault;
     }
 
     // ===================== ISSUE CERTIFICATE =====================
@@ -117,7 +119,11 @@ public class CertificateService {
         Certificate certificate = builder.createCertificate(
                 req, subjectPublicKey, subjectPrivateKey, issuer, user);
 
-        // Ownership for the requester
+        // private key encription
+        UUID orgId = user.getId();
+        privateKeyVault.storeForCertificate(orgId, certificate.getSerialNumber(), subjectPrivateKey);
+        certificate.setPrivateKey(null);
+
         if (requestingUser.getRole() == Role.EeUser ||
                 (requestingUser.getRole() == Role.CaUser && certificate.getCanSign())) {
             requestingUser.getAssignedCertificates().add(certificate);
